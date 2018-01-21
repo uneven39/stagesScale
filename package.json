@@ -1,0 +1,19 @@
+{
+  "name": "stagesscale",
+  "version": "1.0.0",
+  "description": "jQuery plugin to view scheduled tasks as scale",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack webpack.config.js --config",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "dependencies": {
+    "jquery": "^3.3.1"
+  }
+}
