@@ -1,0 +1,19 @@
+.stagesScale {
+  position: relative;
+  background-color: #aeaeae;
+
+  .hidden {
+    display: none;
+  }
+
+  .event {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: red;
+    margin-right: 2.5px;
+    left: 0;
+    top: 0;
+  }
+
+}
