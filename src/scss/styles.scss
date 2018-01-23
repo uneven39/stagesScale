@@ -1,19 +1,40 @@
-.stagesScale {
+.stages-scale {
+  $scale-height: 20px;
+
   position: relative;
-  background-color: #aeaeae;
+  margin: 10px;
 
   .hidden {
     display: none;
   }
 
-  .event {
-    position: absolute;
-    width: 5px;
-    height: 5px;
-    background-color: red;
-    margin-right: 2.5px;
-    left: 0;
-    top: 0;
+  .time-line {
+    position: relative;
+    height: $scale-height;
+    width: 100%;
+    background-color: #aeaeae;
+
+    .event {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: red;
+      margin-left: -5px;
+      left: 0;
+      top: 0;
+      font-size: 10px;
+    }
+
+    .unit-24h {
+      position: absolute;
+      top: $scale-height;
+      width: 40px;
+      margin-left: -20px;
+    }
+  }
+
+  .legend {
+
   }
 
 }
