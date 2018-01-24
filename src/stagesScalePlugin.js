@@ -42,43 +42,6 @@
             return eventsList;
         },
 
-        initEventsDataFromContainer: function($container) {
-            var eventsList = [];
-
-            maxDate = new Date($container[$container.length - 1].data('date')).getTime();
-            minDate = new Date($container[0].data('date')).getTime();
-
-            totalDuration = maxDate - minDate;
-
-            console.log(minDate, maxDate, totalDuration, totalDuration/dayLength);
-
-            $container.each(function(index, item) {
-                var event = {};
-
-                event.date = new Date($(item).data('date')).getTime();
-                event.type = $(item).data('type');
-                event.icon = $(item).data('icon');
-                event.title = $(item).data('title');
-                event.text = $(item).text();
-
-                if (event.date) {
-                    eventsList.push(event);
-                    $(item)
-                        .addClass('event')
-                        .prop('data-text', event.text)
-                        .html('');
-
-                } else {
-                    console.log('no data');
-                    $(item).addClass('hidden');
-                }
-
-                $(item).css('left', (((totalDuration - (maxDate - event.date)) / totalDuration)*100 + '%'));
-            });
-
-            return eventsList;
-        },
-
         redraw: function (minLimit, maxLimit) {
             console.log(minLimit,
                 new Date(minLimit).setUTCHours(0, 0, 0, 0),
