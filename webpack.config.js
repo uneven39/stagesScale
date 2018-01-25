@@ -3,37 +3,42 @@ const path = require('path'),
 
 module.exports = {
 	entry: './src/scss/styles.scss',
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'styles.css'
-    },
-    module: {
-        rules: [
-            // SCSS:
-            {
-                test: /\.scss$/,
-                use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: [
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                minimize: true
-                            }
-                        },
-                        {
-                            loader: 'sass-loader'
-                        }
-                    ]
-                })
-            }
-        ]
-    },
-    plugins: [
-        new ExtractTextPlugin('styles.css', {
-            allChunks: true
-        })
-    ]/*,
+  output: {
+      path: path.resolve(__dirname, 'dist'),
+      filename: 'styles.css'
+  },
+  module: {
+      rules: [
+          // SCSS:
+          {
+              test: /\.scss$/,
+              use: ExtractTextPlugin.extract({
+                  fallback: 'style-loader',
+                  use: [
+                      {
+                          loader: 'css-loader',
+                          options: {
+                              minimize: true
+                          }
+                      },
+                      {
+                          loader: 'sass-loader'
+                      }
+                  ]
+              })
+          }
+      ]
+  },
+  plugins: [
+      new ExtractTextPlugin('styles.css', {
+          allChunks: true
+      })
+  ],
+  devServer: {
+        watchOptions: {
+          ignored: /node_modules/
+        }
+	}/*,
     devServer: {
         contentBase: [
             path.resolve(__dirname, "dist"),

@@ -11,7 +11,6 @@
             '</div>');
 
     var ruler24Labels = [
-        '00:00',
         '01:00',
         '02:00',
         '03:00',
@@ -80,27 +79,28 @@
 
         drawRuler: function(zoomLevel) {
             switch (zoomLevel) {
-                case '24h':
+              case '24h':
+									  $ruler = $('<div class="ruler"></div>');
                     for (var i = 0; i < ruler24Labels.length; i++) {
-                        var $rulerUnit = $('<span class="unit-24"></span>');
-                        $rulerUnit
-                            .css('left', i*4.166666 + '%')
-                            .text(ruler24Labels[i]);
+                        var $rulerUnit = $('<div class="unit-hh" data-value="' + ruler24Labels[i] + '">' +
+                          '<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>' +
+                          '</div>');
                         $ruler.append($rulerUnit);
                     }
+                    $timeLine.append($ruler);
                     break;
             }
         },
 
         groupEvents: function(zoomLevel){
             switch (zoomLevel) {
-                case '24h':
+                case 1:
 
             }
 
         },
 
-        redraw: function (minLimit, maxLimit) {
+        redraw: function (minLimit, maxLimit, scale) {
             var startDay = new Date(minLimit),
                 finishDay;
 
@@ -108,8 +108,8 @@
             startDay = startDay.getTime() - timeShift;
             finishDay = startDay + dayLength;
 
-            console.log('current day range: ', startDay, finishDay);
-            console.log('current day range: ', (new Date(startDay)).toISOString(),(new Date(finishDay)).toISOString());
+            // console.log('current day range: ', startDay, finishDay);
+            // console.log('current day range: ', (new Date(startDay)).toISOString(),(new Date(finishDay)).toISOString());
             console.log('durations: ', totalDuration, dayLength);
 
             if ((maxLimit - minLimit) <= dayLength) {
@@ -141,15 +141,16 @@
         bind: function() {
             $controls
                 .on('click', '.zoom-in', function () {
-                    var newZoomLevel = zoomLevel === 10 ? zoomLevel : zoomLevel + 1,
-                        newWidth = newZoomLevel * 100,
+                    var newZoomLevel = zoomLevel === 8 ? zoomLevel : zoomLevel + 1,
                         step,
                         curScroll;
 
                     zoomLevel = newZoomLevel;
-                    console.log(newWidth);
-                    $events.width(newWidth + '%');
-                    $ruler.width(newWidth + '%');
+
+                    $timeLine.removeClass(function(i, className){
+                        return (className.match (/\bzoom-\S+/g) || []).join(' ');
+                    });
+                    $timeLine.addClass('zoom-' + newZoomLevel);
 
                     step = $ruler.width() / 24;
                     curScroll = $timeLine.scrollLeft();
@@ -157,15 +158,15 @@
                 })
                 .on('click', '.zoom-out', function () {
                     var newZoomLevel = zoomLevel === 1 ? 1 : zoomLevel - 1,
-                        newWidth = newZoomLevel * 100,
                         step,
                         curScroll;
 
                     zoomLevel = newZoomLevel;
-                    console.log(newWidth);
-                    $events.width(newWidth + '%');
-                    $ruler.width(newWidth + '%');
 
+                    $timeLine.removeClass(function(i, className){
+											return (className.match (/\bzoom-\S+/g) || []).join(' ');
+                    });
+									  $timeLine.addClass('zoom-' + newZoomLevel);
                     step = $ruler.width() / 24;
                     curScroll = $timeLine.scrollLeft();
                     $timeLine.scrollLeft(Math.ceil(curScroll / step) * step);
@@ -212,9 +213,7 @@
                 $pluginContainer
                     .children().wrapAll('<div class="time-line"><div class="events"></div></div>');
                 $timeLine = $pluginContainer.find('.time-line');
-                $timeLine.append('<div class="ruler"></div>');
                 $events = $timeLine.find('.events');
-                $ruler = $pluginContainer.find('.ruler');
                 $pluginContainer.prepend($controls);
 
                 helpers.redraw(firstEventDate, lastEventDate);

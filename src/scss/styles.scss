@@ -1,4 +1,4 @@
-$time-line-height: 80px;
+$time-line-height: 120px;
 $time-line-ruler-height: 20px;
 
 $ruler-24h-min-width: 992px;
@@ -32,8 +32,89 @@ $ruler-24h-min-width: 992px;
     height: $time-line-height;
     width: 100%;
     //background-color: #aeaeae;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     box-sizing: border-box;
+
+    &.zoom-1 {
+      .events, .ruler {
+        width: 100% !important;
+      }
+    }
+
+    &.zoom-2 {
+      .events, .ruler {
+        width: 200% !important;
+      }
+    }
+
+    &.zoom-3 {
+      .events, .ruler {
+        width: 300% !important;
+      }
+    }
+
+    &.zoom-4 {
+      .events, .ruler {
+        width: 400% !important;
+      }
+    }
+
+    &.zoom-5 {
+      .events, .ruler {
+        width: 480% !important;
+      }
+    }
+
+    &.zoom-6 {
+      .events, .ruler {
+        width: 600% !important;
+      }
+    }
+
+    &.zoom-7 {
+      .events, .ruler {
+        width: 800% !important;
+      }
+    }
+
+    &.zoom-8 {
+      .events, .ruler {
+        width: 1200% !important;
+      }
+    }
+
+    /*&.zoom-2, &.zoom-3 {
+      .ruler .unit-hh {
+        background-color: #ffffff;
+        background-image:
+                linear-gradient(90deg,
+                        transparent 49%,
+                        rgba(73, 73, 73, 0.5) 49%,
+                        rgba(73, 73, 73, 0.5) 51%,
+                        transparent 51%
+                );
+        background-size: 100% 100%;
+        background-repeat: repeat-x;
+        min-height: 20px;
+      }
+    }
+
+    &.zoom-4, &.zoom-5, &.zoom-6, &.zoom-7, &.zoom-8 {
+      .ruler .unit-hh {
+        background-color: #ffffff;
+        background-image:
+                linear-gradient(90deg,
+                        transparent 49.5%,
+                        rgba(73, 73, 73, 0.5) 49.5%,
+                        rgba(73, 73, 73, 0.5) 50.5%,
+                        transparent 50.5%
+                );
+        background-size: 100% 100%;
+        background-repeat: repeat-x;
+        min-height: 20px;
+      }
+    }*/
 
     .events {
       position: relative;
@@ -56,15 +137,65 @@ $ruler-24h-min-width: 992px;
     .ruler {
       position: relative;
       width: 100%;
-      height: 20px;
       height: $time-line-ruler-height;
 
-      .unit-24 {
-        position: absolute;
+      .unit-hh {
+        position: relative;
         top: 0;
-        width: 40px;
-        margin-left: -20px;
+        width: 4.16667%;
+        height: 100%;
+        box-sizing: border-box;
         text-align: center;
+        float: left;
+        border-right: 2px solid black;
+
+        > i {
+          position: relative;
+          display: inline-block;
+          width: 8.3333333%;
+          //margin-top: 60%;
+          height: 40%;
+          box-sizing: border-box;
+          border-right: 1px solid black;
+
+          &:nth-child(6) {
+            height: 60%;
+            //margin-top: 40%;
+          }
+
+          &:last-child {
+            border-right: none;
+          }
+
+        }
+
+        &:after {
+          position: absolute;
+          content: attr(data-value);
+          width: 40px;
+          height: 100%;
+          left: 100%;
+          margin-left: -20px;
+          top: 100%;
+        }
+
+        &:before {
+
+        }
+
+        &:first-child {
+          border-left: 2px solid black;
+
+          &:before {
+            position: absolute;
+            content: '00:00';
+            width: 40px;
+            height: 100%;
+            right: 100%;
+            margin-right: -20px;
+            top: 100%;
+          }
+        }
       }
     }
 
