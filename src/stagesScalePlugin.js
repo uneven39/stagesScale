@@ -222,7 +222,33 @@
         },
 
         bind: function() {
+            $timeLine
+                .on('scroll', function() {
+                    console.log('time-line scrolling');
+
+                    $events.find('.events-item').each(function(index, el) {
+                        var top = el.offsetTop;
+                        var left = el.offsetLeft;
+                        var width = el.offsetWidth;
+                        var height = el.offsetHeight;
+
+                        while(el.offsetParent) {
+                            el = el.offsetParent;
+                            top += el.offsetTop;
+                            left += el.offsetLeft;
+                        }
+
+                        console.log ( $(el).data('title'),
+                            top >= window.pageYOffset &&
+                            left >= window.pageXOffset &&
+                            (top + height) <= (window.pageYOffset + window.innerHeight) &&
+                            (left + width) <= (window.pageXOffset + window.innerWidth)
+                        );
+                    });
+                });
+
             $controls
+            // TODO: make scroll position constant on zooming
                 .on('click', '.zoom-in', function () {
                     var newZoomLevel = zoomLevel === 8 ? zoomLevel : zoomLevel + 1,
                         step,
@@ -304,7 +330,9 @@
                     .wrapAll('<div class="time-line"><div class="events"></div></div>');
                 $timeLine = $pluginContainer.find('.time-line');
                 $events = $timeLine.find('.events');
-                $pluginContainer.prepend($controls);
+                $pluginContainer
+                    .prepend($controls)
+                    .append($('<div class="legend"></div>'));
 
                 helpers.redraw(firstEventDate, lastEventDate);
                 helpers.drawRuler('24h');
