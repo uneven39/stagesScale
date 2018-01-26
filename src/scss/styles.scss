@@ -124,6 +124,7 @@ $ruler-24h-min-width: 992px;
           top: 0;
           left: 50%;
           margin-left: -10px;
+          text-align: center;
           color: white;
         }
 
@@ -201,7 +202,11 @@ $ruler-24h-min-width: 992px;
   }
 
   .legend {
-
+    &-item {
+      display: inline-block;
+      margin: 10px;
+      padding: 5px 10px;
+    }
   }
 
 }

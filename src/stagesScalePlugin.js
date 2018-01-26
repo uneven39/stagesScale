@@ -223,43 +223,44 @@
 
         bind: function() {
             $timeLine
-                .on('scroll', function() {
+                .on('scroll zoom', function() {
                     var leftLimit = $timeLine.offset().left,
-                        rightLimit = $timeLine.offset().left + $timeLine.width(),
+                        rightLimit = $timeLine.offset().left + $timeLine.width() + (+$timeLine.css('padding-right').slice(0, -2) * 2),
                         $legend = $pluginContainer.find('.legend'),
                         $legendContent = $('<div></div>');
 
                     console.log('time-line scrolling');
+                    console.log($timeLine.css('padding-right').slice(0, -2));
                     console.log('==========================');
 
                     $events.children().each(function(index, el) {
-                        var leftBorder = $(el).offset().left,
-                            $eventData = $('<div style="display: inline-block" class="description"></div>');
-
+                        var leftBorder = $(el).offset().left;
 
                         // Checking if event item or group is in time-line viewport:
                         if ((leftBorder >= leftLimit) && (leftBorder <= rightLimit)) {
                             // Check if group or single event
-                            var header = '<h5>';
                             if (el.classList.contains('group-by')) {
                                 // group:
                                 $(el).children().each(function(index, item) {
                                     console.log('event ' + item.dataset.title + ' in viewport');
-                                    header += item.dataset.title + ', ';
+                                    var $eventData = $('<div class="legend-item"></div>');
+                                    $eventData.append('<h4>' + item.dataset.title + '</h4>' +
+                                        '<div class="description">' + item.innerText + '</div>');
+                                    $legendContent.append($eventData);
                                 });
-                                header = header.slice(0, -2) + '</h5>';
                             } else if (el.classList.contains('events-item')) {
                                 // single:
                                 console.log('event ' + el.dataset.title + ' in viewport');
-                                header += el.dataset.title + '</h5>';
+                                var $eventData = $('<div class="legend-item"></div>');
+                                $eventData.append('<h4>' + el.dataset.title + '</h4>' +
+                                    '<div class="description">' + el.innerText + '</div>');
+                                $legendContent.append($eventData);
                             }
                         }
-                        $eventData.html(header);
 
-                        $legendContent.append($eventData);
                     });
 
-                    $legend.html($legendContent);
+                    $legend.html($legendContent.html());
                     console.log('==========================');
                 });
 
@@ -282,7 +283,9 @@
 
                     step = $ruler.width() / 24;
                     curScroll = $timeLine.scrollLeft();
-                    $timeLine.scrollLeft(Math.ceil(curScroll / step) * step);
+                    $timeLine
+                        .scrollLeft(Math.ceil(curScroll / step) * step)
+                        .trigger('zoom');
                 })
                 .on('click', '.zoom-out', function () {
                     var newZoomLevel = zoomLevel === 1 ? 1 : zoomLevel - 1,
@@ -300,7 +303,9 @@
                     $timeLine.addClass('zoom-' + newZoomLevel);
                     step = $ruler.width() / 24;
                     curScroll = $timeLine.scrollLeft();
-                    $timeLine.scrollLeft(Math.ceil(curScroll / step) * step);
+                    $timeLine
+                        .scrollLeft(Math.ceil(curScroll / step) * step)
+                        .trigger('zoom');
                 })
                 .on('click', '.scroll-right', function () {
                     var step = $ruler.width() / 24,
@@ -356,6 +361,8 @@
                 helpers.groupEvents(1);
 
                 helpers.bind();
+
+                $timeLine.trigger('scroll');
 
             } else if (typeof this === 'function') {
                 // Вызываем плагин как глобальный метод jQuery:
