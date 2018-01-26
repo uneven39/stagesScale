@@ -62,14 +62,17 @@
             var eventsList = [];
 
             $container.find('[data-type][data-date]').each(function(index, item) {
-                var event = {};
+                var event = {},
+                    utcDate = new Date($(item).data('date')).getTime();
+                console.log((new Date($(item).data('date'))).getHours());
 
-                event.date = new Date($(item).data('date')).getTime() + timeShift;
+                event.date = utcDate + timeShift;
                 event.type = $(item).data('type');
                 event.icon = $(item).data('icon');
                 event.title = $(item).data('title');
                 event.text = $(item).text();
-                // event.$item = $(item);
+                event.$item = $(item);
+                $(item).attr('data-timestamp', utcDate - timeShift);
 
                 eventsList.push(event);
             });
@@ -79,8 +82,8 @@
 
         drawRuler: function(zoomLevel) {
             switch (zoomLevel) {
-              case '24h':
-									  $ruler = $('<div class="ruler"></div>');
+                case '24h':
+                    $ruler = $('<div class="ruler"></div>');
                     for (var i = 0; i < ruler24Labels.length; i++) {
                         var $rulerUnit = $('<div class="unit-hh" data-value="' + ruler24Labels[i] + '">' +
                           '<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>' +
@@ -92,12 +95,94 @@
             }
         },
 
-        groupEvents: function(zoomLevel){
-            switch (zoomLevel) {
-                case 1:
+        groupEvents: function(period){
 
+            for (var h = 0; h < 24; h++) {
+                var $group = $events.children().filter(function(index, event) {
+                    var date = new Date($(event).data('date'));
+                    return (date.getHours() === h);
+                });
+                if ($group.length > 1) {
+
+                    var step = $ruler.width() / 24,
+                        offset = ((step * h + step/2) / $ruler.width()) * 100,
+                        $wrapper = $('<div class="group-by hour"></div>');
+                    $wrapper.css('left', offset + '%');
+                    $group.wrapAll($wrapper);
+                }
             }
 
+            // switch (period) {
+            //     case 1:
+            //         for (var h = 0; h < 24; h++) {
+            //             var $group = $events.children().filter(function(index, event) {
+            //                 var date = new Date($(event).data('date'));
+            //                 return (date.getHours() === h);
+            //             });
+            //             if ($group.length > 1) {
+            //                 var step = $ruler.width() / 24,
+            //                     offset = ((step * h + step/2) / $ruler.width()) * 100,
+            //                     $wrapper = $('<div class="group-by hour"></div>');
+            //                 $wrapper.css('left', offset + '%');
+            //                 $group.wrapAll($wrapper);
+            //             }
+            //         }
+            //         break;
+            //
+            //     case 2:
+            //         for (var h = 0; h < 24; h++) {
+            //             var $group = $events.children().filter(function(index, event) {
+            //                 var date = new Date($(event).data('date')),
+            //                     isInHour = date.getHours() === h,
+            //                     isIn30Min = (date.getMinutes() < 30) ^ (date.getMinutes() >= 30);
+            //                 return (isInHour && isIn30Min);
+            //             });
+            //             if ($group.length > 1) {
+            //                 var step = $ruler.width() / 24,
+            //                     offset = ((step * h + step/4) / $ruler.width()) * 100,
+            //                     $wrapper = $('<div class="group-by 30min"></div>');
+            //                 $wrapper.css('left', offset + '%');
+            //                 $group.wrapAll($wrapper);
+            //             }
+            //         }
+            //         break;
+            //
+            //     case 3:
+            //         for (var h = 0; h < 24; h++) {
+            //             var $group = $events.children().filter(function(index, event) {
+            //                 var date = new Date($(event).data('date')),
+            //                     mins = date.getMinutes(),
+            //                     isInHour = date.getHours() === h,
+            //                     isIn30Min = (mins >= 30) ^ (mins < 30),
+            //                     isIn15Min = mins < 15 ? true :
+            //                         mins >= 15 && mins < 30 ? true :
+            //                             mins >= 30 && mins < 45 ? true :
+            //                                 mins >= 45;
+            //                     // isIn15Min = (date.getMinutes() < 15 ) ^
+            //                     //     ((date.getMinutes() >= 15) && (date.getMinutes() < 30)) ^
+            //                     //     ((date.getMinutes() >= 30) && (date.getMinutes() < 45)) ^
+            //                     //     (date.getMinutes() >= 45);
+            //                 return (isInHour && isIn15Min);
+            //             });
+            //             if ($group.length > 1) {
+            //                 var step = $ruler.width() / 24,
+            //                     offset = ((step * h + step/8) / $ruler.width()) * 100,
+            //                     $wrapper = $('<div class="group-by 15min"></div>');
+            //                 $wrapper.css('left', offset + '%');
+            //                 $group.wrapAll($wrapper);
+            //             }
+            //         }
+            //         break;
+            //
+            // }
+
+        },
+
+        ungroupEvents: function() {
+            console.log('ungroup');
+            $events.find('.group-by').each(function(index, group) {
+                $(group).children().unwrap('.group-by');
+            })
         },
 
         redraw: function (minLimit, maxLimit, scale) {
@@ -145,6 +230,9 @@
                         step,
                         curScroll;
 
+                    helpers.ungroupEvents();
+                    helpers.groupEvents(newZoomLevel);
+
                     zoomLevel = newZoomLevel;
 
                     $timeLine.removeClass(function(i, className){
@@ -164,9 +252,9 @@
                     zoomLevel = newZoomLevel;
 
                     $timeLine.removeClass(function(i, className){
-											return (className.match (/\bzoom-\S+/g) || []).join(' ');
+                        return (className.match (/\bzoom-\S+/g) || []).join(' ');
                     });
-									  $timeLine.addClass('zoom-' + newZoomLevel);
+                    $timeLine.addClass('zoom-' + newZoomLevel);
                     step = $ruler.width() / 24;
                     curScroll = $timeLine.scrollLeft();
                     $timeLine.scrollLeft(Math.ceil(curScroll / step) * step);
@@ -211,13 +299,16 @@
 
                 // Инициализируем DOM-элементы
                 $pluginContainer
-                    .children().wrapAll('<div class="time-line"><div class="events"></div></div>');
+                    .children()
+                    .wrapAll('<div class="time-line"><div class="events"></div></div>');
                 $timeLine = $pluginContainer.find('.time-line');
                 $events = $timeLine.find('.events');
                 $pluginContainer.prepend($controls);
 
                 helpers.redraw(firstEventDate, lastEventDate);
                 helpers.drawRuler('24h');
+
+                helpers.groupEvents(1);
 
                 helpers.bind();
 

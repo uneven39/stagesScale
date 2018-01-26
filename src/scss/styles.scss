@@ -8,6 +8,8 @@ $ruler-24h-min-width: 992px;
   position: relative;
   margin: 10px;
 
+  font-family: sans-serif, serif;
+
   .hidden {
     display: none;
   }
@@ -28,7 +30,7 @@ $ruler-24h-min-width: 992px;
 
   .time-line {
     position: relative;
-    padding: 10px 20px;
+    padding: 10px 25px;
     height: $time-line-height;
     width: 100%;
     //background-color: #aeaeae;
@@ -132,6 +134,22 @@ $ruler-24h-min-width: 992px;
         top: 0;
         font-size: 10px;
       }
+
+      .group-by {
+        position: absolute;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background-color: blue;
+        margin-left: -10px;
+        left: 0;
+        top: 0;
+        font-size: 12px;
+
+        .events-item {
+          display: none;
+        }
+      }
     }
 
     .ruler {
@@ -172,10 +190,10 @@ $ruler-24h-min-width: 992px;
         &:after {
           position: absolute;
           content: attr(data-value);
-          width: 40px;
+          width: 50px;
           height: 100%;
           left: 100%;
-          margin-left: -20px;
+          margin-left: -25px;
           top: 100%;
         }
 
