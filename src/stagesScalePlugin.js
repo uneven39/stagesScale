@@ -224,27 +224,43 @@
         bind: function() {
             $timeLine
                 .on('scroll', function() {
+                    var leftLimit = $timeLine.offset().left,
+                        rightLimit = $timeLine.offset().left + $timeLine.width(),
+                        $legend = $pluginContainer.find('.legend'),
+                        $legendContent = $('<div></div>');
+
                     console.log('time-line scrolling');
+                    console.log('==========================');
 
-                    $events.find('.events-item').each(function(index, el) {
-                        var top = el.offsetTop;
-                        var left = el.offsetLeft;
-                        var width = el.offsetWidth;
-                        var height = el.offsetHeight;
+                    $events.children().each(function(index, el) {
+                        var leftBorder = $(el).offset().left,
+                            $eventData = $('<div style="display: inline-block" class="description"></div>');
 
-                        while(el.offsetParent) {
-                            el = el.offsetParent;
-                            top += el.offsetTop;
-                            left += el.offsetLeft;
+
+                        // Checking if event item or group is in time-line viewport:
+                        if ((leftBorder >= leftLimit) && (leftBorder <= rightLimit)) {
+                            // Check if group or single event
+                            var header = '<h5>';
+                            if (el.classList.contains('group-by')) {
+                                // group:
+                                $(el).children().each(function(index, item) {
+                                    console.log('event ' + item.dataset.title + ' in viewport');
+                                    header += item.dataset.title + ', ';
+                                });
+                                header = header.slice(0, -2) + '</h5>';
+                            } else if (el.classList.contains('events-item')) {
+                                // single:
+                                console.log('event ' + el.dataset.title + ' in viewport');
+                                header += el.dataset.title + '</h5>';
+                            }
                         }
+                        $eventData.html(header);
 
-                        console.log ( $(el).data('title'),
-                            top >= window.pageYOffset &&
-                            left >= window.pageXOffset &&
-                            (top + height) <= (window.pageYOffset + window.innerHeight) &&
-                            (left + width) <= (window.pageXOffset + window.innerWidth)
-                        );
+                        $legendContent.append($eventData);
                     });
+
+                    $legend.html($legendContent);
+                    console.log('==========================');
                 });
 
             $controls
