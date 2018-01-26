@@ -97,84 +97,82 @@
 
         groupEvents: function(period){
 
-            for (var h = 0; h < 24; h++) {
-                var $group = $events.children().filter(function(index, event) {
-                    var date = new Date($(event).data('date'));
-                    return (date.getHours() === h);
-                });
-                if ($group.length > 1) {
-
-                    var step = $ruler.width() / 24,
-                        offset = ((step * h + step/2) / $ruler.width()) * 100,
-                        $wrapper = $('<div class="group-by hour"></div>');
-                    $wrapper.css('left', offset + '%');
-                    $group.wrapAll($wrapper);
+            if (period > 0 && period < 5) {
+                for (var h = 0; h < 24; h++) {
+                    var $group = $events.children().filter(function(index, event) {
+                        var date = new Date($(event).data('date'));
+                        return (date.getHours() === h);
+                    });
+                    if ($group.length > 1) {
+                        var step = $ruler.width() / 24,
+                            $wrapper = $('<div class="group-by"></div>');
+                        switch (period) {
+                            case 1:
+                                var offset = ((step * h + step/2) / $ruler.width()) * 100;
+                                $wrapper
+                                    .addClass('hour')
+                                    .css('left', offset + '%')
+                                    .attr('data-count', $group.length);
+                                $group.wrapAll($wrapper);
+                                break;
+                            case 2:
+                                for (var m30 = 29; m30 <= 59; m30 = m30 + 30) {
+                                    var $groupBy30m = $group.filter(function(index, event) {
+                                        var date = new Date($(event).data('date')),
+                                            mins = date.getMinutes();
+                                        return ((mins >= (m30 - 29)) && (mins <= m30));
+                                    });
+                                    if ($groupBy30m.length > 1) {
+                                        var offsetAdd30m = (m30 + 1 - 15) * step / 60,
+                                            offset30m = ((step * h + offsetAdd30m) / $ruler.width()) * 100;
+                                        $wrapper
+                                            .addClass('30min')
+                                            .css('left', offset30m + '%')
+                                            .attr('data-count', $groupBy30m.length);
+                                        $groupBy30m.wrapAll($wrapper);
+                                    }
+                                }
+                                break;
+                            case 3:
+                                for (var m15 = 14; m15 <= 59; m15 = m15 + 15) {
+                                    var $groupBy15m = $group.filter(function(index, event) {
+                                        var date = new Date($(event).data('date')),
+                                            mins = date.getMinutes();
+                                        return ((mins >= (m15 - 14)) && (mins <= m15));
+                                    });
+                                    if ($groupBy15m.length > 1) {
+                                        var offsetAdd15m = (m15 + 1 - 7.5) * step / 60,
+                                            offset15m = ((step * h + offsetAdd15m) / $ruler.width()) * 100;
+                                        $wrapper
+                                            .addClass('15min')
+                                            .css('left', offset15m + '%')
+                                            .attr('data-count', $groupBy15m.length);
+                                        $groupBy15m.wrapAll($wrapper);
+                                    }
+                                }
+                                break;
+                            case 4:
+                                for (var m5 = 4; m5 <= 59; m5 = m5 + 5) {
+                                    var $groupBy5m = $group.filter(function(index, event) {
+                                        var date = new Date($(event).data('date')),
+                                            mins = date.getMinutes();
+                                        return ((mins >= (m5 - 4)) && (mins <= m5));
+                                    });
+                                    if ($groupBy5m.length > 1) {
+                                        var offsetAdd5m = (m5 + 1 - 3.75) * step / 60,
+                                            offset5m = ((step * h + offsetAdd5m) / $ruler.width()) * 100;
+                                        $wrapper
+                                            .addClass('5min')
+                                            .css('left', offset5m + '%')
+                                            .attr('data-count', $groupBy5m.length);
+                                        $groupBy5m.wrapAll($wrapper);
+                                    }
+                                }
+                                break;
+                        }
+                    }
                 }
             }
-
-            // switch (period) {
-            //     case 1:
-            //         for (var h = 0; h < 24; h++) {
-            //             var $group = $events.children().filter(function(index, event) {
-            //                 var date = new Date($(event).data('date'));
-            //                 return (date.getHours() === h);
-            //             });
-            //             if ($group.length > 1) {
-            //                 var step = $ruler.width() / 24,
-            //                     offset = ((step * h + step/2) / $ruler.width()) * 100,
-            //                     $wrapper = $('<div class="group-by hour"></div>');
-            //                 $wrapper.css('left', offset + '%');
-            //                 $group.wrapAll($wrapper);
-            //             }
-            //         }
-            //         break;
-            //
-            //     case 2:
-            //         for (var h = 0; h < 24; h++) {
-            //             var $group = $events.children().filter(function(index, event) {
-            //                 var date = new Date($(event).data('date')),
-            //                     isInHour = date.getHours() === h,
-            //                     isIn30Min = (date.getMinutes() < 30) ^ (date.getMinutes() >= 30);
-            //                 return (isInHour && isIn30Min);
-            //             });
-            //             if ($group.length > 1) {
-            //                 var step = $ruler.width() / 24,
-            //                     offset = ((step * h + step/4) / $ruler.width()) * 100,
-            //                     $wrapper = $('<div class="group-by 30min"></div>');
-            //                 $wrapper.css('left', offset + '%');
-            //                 $group.wrapAll($wrapper);
-            //             }
-            //         }
-            //         break;
-            //
-            //     case 3:
-            //         for (var h = 0; h < 24; h++) {
-            //             var $group = $events.children().filter(function(index, event) {
-            //                 var date = new Date($(event).data('date')),
-            //                     mins = date.getMinutes(),
-            //                     isInHour = date.getHours() === h,
-            //                     isIn30Min = (mins >= 30) ^ (mins < 30),
-            //                     isIn15Min = mins < 15 ? true :
-            //                         mins >= 15 && mins < 30 ? true :
-            //                             mins >= 30 && mins < 45 ? true :
-            //                                 mins >= 45;
-            //                     // isIn15Min = (date.getMinutes() < 15 ) ^
-            //                     //     ((date.getMinutes() >= 15) && (date.getMinutes() < 30)) ^
-            //                     //     ((date.getMinutes() >= 30) && (date.getMinutes() < 45)) ^
-            //                     //     (date.getMinutes() >= 45);
-            //                 return (isInHour && isIn15Min);
-            //             });
-            //             if ($group.length > 1) {
-            //                 var step = $ruler.width() / 24,
-            //                     offset = ((step * h + step/8) / $ruler.width()) * 100,
-            //                     $wrapper = $('<div class="group-by 15min"></div>');
-            //                 $wrapper.css('left', offset + '%');
-            //                 $group.wrapAll($wrapper);
-            //             }
-            //         }
-            //         break;
-            //
-            // }
 
         },
 
@@ -248,6 +246,9 @@
                     var newZoomLevel = zoomLevel === 1 ? 1 : zoomLevel - 1,
                         step,
                         curScroll;
+
+                    helpers.ungroupEvents();
+                    helpers.groupEvents(newZoomLevel);
 
                     zoomLevel = newZoomLevel;
 
