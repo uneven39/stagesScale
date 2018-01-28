@@ -3,6 +3,10 @@ $time-line-ruler-height: 20px;
 
 $ruler-24h-min-width: 992px;
 
+.hidden {
+  display: none;
+}
+
 .stages-scale {
 
   position: relative;
@@ -33,7 +37,6 @@ $ruler-24h-min-width: 992px;
     padding: 10px 25px;
     height: $time-line-height;
     width: 100%;
-    //background-color: #aeaeae;
     overflow-x: auto;
     overflow-y: hidden;
     box-sizing: border-box;
@@ -54,17 +57,32 @@ $ruler-24h-min-width: 992px;
       .events, .ruler {
         width: 300% !important;
       }
+
+      .ruler i:nth-child(4n) {
+        height: 60%;
+      }
+      .ruler i:nth-child(6n) {
+        height: 40% !important;
+      }
     }
 
     &.zoom-4 {
       .events, .ruler {
         width: 400% !important;
       }
+
+      .ruler i:nth-child(3n) {
+        height: 60%;
+      }
     }
 
     &.zoom-5 {
       .events, .ruler {
         width: 480% !important;
+      }
+
+      .ruler i:nth-child(even) {
+        height: 60%;
       }
     }
 
@@ -204,8 +222,25 @@ $ruler-24h-min-width: 992px;
   .legend {
     &-item {
       display: inline-block;
-      margin: 10px;
-      padding: 5px 10px;
+      width: 33.33%;
+      visibility: hidden;
+      position: absolute;
+      padding: 5px 15px;
+      box-sizing: border-box;
+    }
+
+    > .col-3 {
+      width: 33.33%;
+      float: left;
+
+      .legend-item {
+        display: inline-block;
+        position: relative;
+        width: 100%;
+        visibility: visible;
+        padding: 5px 15px;
+        box-sizing: border-box;
+      }
     }
   }
 
