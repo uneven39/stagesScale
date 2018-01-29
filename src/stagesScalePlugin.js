@@ -466,7 +466,43 @@
 
             } else if (typeof this === 'function') {
                 // Вызываем плагин как глобальный метод jQuery:
+                // проверяем, что на входе есть массив с данными
+                if (Array.isArray(arguments[0])) {
+                    $pluginContainer = $('<div class="stages-scale"></div>');
 
+                    // Сортируем коллекцию событий по датам, получаем массив событий
+                    helpers.sortEventNodes($pluginContainer);
+                    eventsList = helpers.getEventsListFromContainer($pluginContainer);
+                    firstEventDate = eventsList[0].date;
+                    lastEventDate = eventsList[eventsList.length - 1].date;
+                    totalDuration = lastEventDate - firstEventDate;
+
+                    console.log(eventsList);
+
+                    // Инициализируем DOM-элементы
+                    $pluginContainer
+                        .children()
+                        .wrapAll('<div class="time-line"><div class="events"></div></div>');
+                    $timeLine = $pluginContainer
+                        .find('.time-line')
+                        .addClass('zoom-1');
+                    $events = $timeLine.find('.events');
+                    $pluginContainer
+                        .prepend($controls)
+                        .append($('<div class="legend"></div>'));
+
+                    helpers.redraw();
+                    helpers.drawRuler();
+
+                    // helpers.groupEvents(1);
+
+                    helpers.bind();
+
+                    this.removeClass('hidden');
+
+                    $timeLine.trigger('zoom');
+                    helpers.groupEvents(1);
+                }
             }
 
         }
