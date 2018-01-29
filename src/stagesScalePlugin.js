@@ -244,13 +244,22 @@
 
         redraw: function () {
             var startEvents = new Date(firstEventDate),
+                finishEvents = new Date(lastEventDate),
                 dayDate = new Date(startEvents.getTime() - timeShift),
                 startDate = new Date(startEvents.getTime() - timeShift),
-                finishDate = new Date(startEvents.getTime() - timeShift),
-                eventsDuration;
+                finishDate = new Date(finishEvents.getTime() - timeShift);
 
-            startDate.setHours(settings.start, 0, 0, 0);
-            finishDate.setHours(settings.finish, 0, 0, 0);
+            if (settings.start === 'auto') {
+                settings.start = startDate.getHours();
+            } else {
+                startDate.setHours(settings.start, 0, 0, 0);
+            }
+
+            if (settings.finish === 'auto') {
+                settings.finish = finishDate.getHours() === 23 ? 24 : finishDate.getHours() + 1;
+            } else {
+                finishDate.setHours(settings.finish, 0, 0, 0);
+            }
 
             console.log('start: ', dayDate.getDate(), startDate.getTime());
             console.log('finish: ', finishDate.getHours(), finishDate.getTime());
