@@ -160,7 +160,6 @@ $ruler-24h-min-width: 992px;
       .unit-hh {
         position: relative;
         top: 0;
-        width: 4.16667%;
         height: 100%;
         box-sizing: border-box;
         text-align: center;
@@ -206,7 +205,7 @@ $ruler-24h-min-width: 992px;
 
           &:before {
             position: absolute;
-            content: '00:00';
+            content: attr(data-start-hour);
             width: 40px;
             height: 100%;
             right: 100%;

@@ -10,7 +10,12 @@
             '<span class="control zoom-in"> + </span><span class="control zoom-out"> - </span>' +
             '</div>');
 
-    var ruler24Labels = [
+    var defaults = {'start': 0,
+            'finish': 24,
+            'legendHeight': 'auto'
+        },
+        settings,
+        ruler24Labels = [
         '01:00',
         '02:00',
         '03:00',
@@ -63,7 +68,7 @@
             $container.find('[data-type][data-date]').each(function(index, item) {
                 var event = {},
                     utcDate = new Date($(item).data('date')).getTime();
-                console.log((new Date($(item).data('date'))).getHours());
+                // console.log((new Date($(item).data('date'))).getHours());
 
                 event.date = utcDate + timeShift;
                 event.type = $(item).data('type');
@@ -79,35 +84,36 @@
             return eventsList;
         },
 
-        drawRuler: function(zoomLevel) {
-            switch (zoomLevel) {
-                case '24h':
-                    $ruler = $('<div class="ruler"></div>');
-                    for (var i = 0; i < ruler24Labels.length; i++) {
-                        var $rulerUnit = $('<div class="unit-hh" data-value="' + ruler24Labels[i] + '">' +
-                          '<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>' +
-                          '</div>');
-                        $ruler.append($rulerUnit);
-                    }
-                    $timeLine.append($ruler);
-                    break;
+        drawRuler: function() {
+            $ruler = $('<div class="ruler"></div>');
+            for (var i = settings.start; i < settings.finish; i++) {
+                var $rulerUnit = $('<div class="unit-hh" data-value="' + ruler24Labels[i] + '">' +
+                    '<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>' +
+                    '</div>');
+                if (i === settings.start) {
+                    var label = ('0' + i).slice(-2) + ':00';
+                    $rulerUnit.attr('data-start-hour', '' + label);
+                }
+                $rulerUnit.css('width', 100 / (settings.finish - settings.start) + '%');
+                $ruler.append($rulerUnit);
             }
+            $timeLine.append($ruler);
         },
 
         groupEvents: function(period){
 
 
-            for (var h = 0; h < 24; h++) {
-                var $group = $events.children().filter(function(index, event) {
+            for (var h = settings.start; h < settings.finish; h++) {
+                var $group = $events.children(':not(.hidden)').filter(function(index, event) {
                     var date = new Date($(event).data('date'));
                     return (date.getHours() === h);
                 });
                 if ($group.length > 1) {
-                    var step = $ruler.width() / 24,
+                    var step = $ruler.width() / (settings.finish - settings.start),
                         $wrapper = $('<div class="group-by"></div>');
                     switch (period) {
                         case 1:
-                            var offset = ((step * h + step/2) / $ruler.width()) * 100;
+                            var offset = ((step * (h - settings.start) + step/2) / $ruler.width()) * 100;
                             $wrapper
                                 .addClass('hour')
                                 .css('left', offset + '%')
@@ -123,7 +129,7 @@
                                 });
                                 if ($groupBy30m.length > 1) {
                                     var offsetAdd30m = (m30 + 1 - 15) * step / 60,
-                                        offset30m = ((step * h + offsetAdd30m) / $ruler.width()) * 100;
+                                        offset30m = ((step * (h - settings.start) + offsetAdd30m) / $ruler.width()) * 100;
                                     $wrapper
                                         .addClass('30min')
                                         .css('left', offset30m + '%')
@@ -141,7 +147,7 @@
                                 });
                                 if ($groupBy20m.length > 1) {
                                     var offsetAdd20m = (m20 + 1 - 10) * step / 60,
-                                        offset20m = ((step * h + offsetAdd20m) / $ruler.width()) * 100;
+                                        offset20m = ((step * (h - settings.start) + offsetAdd20m) / $ruler.width()) * 100;
                                     $wrapper
                                         .addClass('20min')
                                         .css('left', offset20m + '%')
@@ -159,7 +165,7 @@
                                 });
                                 if ($groupBy15m.length > 1) {
                                     var offsetAdd15m = (m15 + 1 - 7.5) * step / 60,
-                                        offset15m = ((step * h + offsetAdd15m) / $ruler.width()) * 100;
+                                        offset15m = ((step * (h - settings.start) + offsetAdd15m) / $ruler.width()) * 100;
                                     $wrapper
                                         .addClass('15min')
                                         .css('left', offset15m + '%')
@@ -177,7 +183,7 @@
                                 });
                                 if ($groupBy10m.length > 1) {
                                     var offsetAdd10m = (m10 + 1 - 5) * step / 60,
-                                        offset10m = ((step * h + offsetAdd10m) / $ruler.width()) * 100;
+                                        offset10m = ((step * (h - settings.start) + offsetAdd10m) / $ruler.width()) * 100;
                                     $wrapper
                                         .addClass('10min')
                                         .css('left', offset10m + '%')
@@ -195,7 +201,7 @@
                                 });
                                 if ($groupBy5m.length > 1) {
                                     var offsetAdd5m = (m5 + 1 - 2.5) * step / 60,
-                                        offset5m = ((step * h + offsetAdd5m) / $ruler.width()) * 100;
+                                        offset5m = ((step * (h - settings.start) + offsetAdd5m) / $ruler.width()) * 100;
                                     $wrapper
                                         .addClass('5min')
                                         .css('left', offset5m + '%')
@@ -236,36 +242,37 @@
             })
         },
 
-        redraw: function (minLimit, maxLimit, scale) {
-            var startDay = new Date(minLimit),
-                finishDay;
+        redraw: function () {
+            var startEvents = new Date(firstEventDate),
+                dayDate = new Date(startEvents.getTime() - timeShift),
+                startDate = new Date(startEvents.getTime() - timeShift),
+                finishDate = new Date(startEvents.getTime() - timeShift),
+                eventsDuration;
+
+            startDate.setHours(settings.start, 0, 0, 0);
+            finishDate.setHours(settings.finish, 0, 0, 0);
+
+            console.log('start: ', dayDate.getDate(), startDate.getTime());
+            console.log('finish: ', finishDate.getHours(), finishDate.getTime());
 
             // startDay.setUTCHours(0, 0, 0, 0);
-            startDay = startDay.getTime() - timeShift;
-            finishDay = startDay + dayLength;
+            totalDuration = finishDate.getTime() - startDate.getTime();
 
             // console.log('current day range: ', startDay, finishDay);
             // console.log('current day range: ', (new Date(startDay)).toISOString(),(new Date(finishDay)).toISOString());
             console.log('durations: ', totalDuration, dayLength);
 
-            if ((maxLimit - minLimit) <= dayLength) {
-                maxLimit = finishDay;
-                minLimit = startDay;
-                totalDuration = dayLength;
-            } else {
-                maxLimit = lastEventDate;
-                minLimit = firstEventDate;
-            }
-
             $events.children().each(function(index, item) {
                 var $item = $(item),
                     date = new Date($item.data('date')).getTime(),
-                    isInRange = (date >= minLimit) && (date <= maxLimit),
+                    isInRange = (date >= startDate.getTime()) && (date <= finishDate.getTime()),
                     position;
 
                 if (isInRange) {
-                    position = ((totalDuration - (maxLimit - date)) / totalDuration)*100 + '%';
+                    position = ((totalDuration - (finishDate.getTime() - date)) / totalDuration)*100 + '%';
                     $item
+                        .attr('data-text', $item.text())
+                        .text('')
                         .addClass('events-item')
                         .css('left', position);
                 } else {
@@ -308,6 +315,40 @@
                 $events.slice(start, $events.length).wrapAll('<div class="col-3"></div>');
         },
 
+        zoom: function(zoomType) {
+            var newZoomLevel,
+                curStep,
+                newStep,
+                stepAmount,
+                curScroll;
+
+            if (zoomType === '+')
+                newZoomLevel = zoomLevel === 8 ? zoomLevel : zoomLevel + 1;
+            else if (zoomType === '-')
+                newZoomLevel = zoomLevel === 1 ? 1 : zoomLevel - 1;
+
+            helpers.ungroupEvents();
+            helpers.groupEvents(newZoomLevel);
+
+            zoomLevel = newZoomLevel;
+
+            curStep = $ruler.width() / 24;
+            curScroll = $timeLine.scrollLeft();
+            stepAmount = curScroll / curStep;
+
+            $timeLine.removeClass(function(i, className){
+                return (className.match (/\bzoom-\S+/g) || []).join(' ');
+            });
+
+            $timeLine.addClass('zoom-' + newZoomLevel);
+
+            newStep = $ruler.width() / 24;
+
+            $timeLine
+                .scrollLeft(Math.ceil(stepAmount * newStep))
+                .trigger('zoom');
+        },
+
         bind: function() {
             $timeLine
                 .on('scroll zoom', function() {
@@ -332,8 +373,7 @@
                                     // console.log('event ' + item.dataset.title + ' in viewport');
                                     var $eventData = $('<div class="legend-item"></div>');
                                     $eventData.append('<h4>' + item.dataset.title + '</h4>' +
-                                        '<div class="description">' + item.innerText + '</div>');
-                                    console.log(item.dataset.title, $eventData.height());
+                                        '<div class="description">' + item.dataset.text + '</div>');
                                     $legendContent.append($eventData);
                                 });
                             } else if (el.classList.contains('events-item')) {
@@ -341,8 +381,7 @@
                                 // console.log('event ' + el.dataset.title + ' in viewport');
                                 var $eventData = $('<div class="legend-item"></div>');
                                 $eventData.append('<h4>' + el.dataset.title + '</h4>' +
-                                    '<div class="description">' + el.innerText + '</div>');
-                                console.log(el.dataset.title, $eventData.height());
+                                    '<div class="description">' + el.dataset.text + '</div>');
                                 $legendContent.append($eventData);
                             }
                         }
@@ -355,47 +394,11 @@
                 });
 
             $controls
-            // TODO: make scroll position constant on zooming
                 .on('click', '.zoom-in', function () {
-                    var newZoomLevel = zoomLevel === 8 ? zoomLevel : zoomLevel + 1,
-                        step,
-                        curScroll;
-
-                    helpers.ungroupEvents();
-                    helpers.groupEvents(newZoomLevel);
-
-                    zoomLevel = newZoomLevel;
-
-                    $timeLine.removeClass(function(i, className){
-                        return (className.match (/\bzoom-\S+/g) || []).join(' ');
-                    });
-                    $timeLine.addClass('zoom-' + newZoomLevel);
-
-                    step = $ruler.width() / 24;
-                    curScroll = $timeLine.scrollLeft();
-                    $timeLine
-                        .scrollLeft(Math.ceil(curScroll / step) * step)
-                        .trigger('zoom');
+                    helpers.zoom('+');
                 })
                 .on('click', '.zoom-out', function () {
-                    var newZoomLevel = zoomLevel === 1 ? 1 : zoomLevel - 1,
-                        step,
-                        curScroll;
-
-                    helpers.ungroupEvents();
-                    helpers.groupEvents(newZoomLevel);
-
-                    zoomLevel = newZoomLevel;
-
-                    $timeLine.removeClass(function(i, className){
-                        return (className.match (/\bzoom-\S+/g) || []).join(' ');
-                    });
-                    $timeLine.addClass('zoom-' + newZoomLevel);
-                    step = $ruler.width() / 24;
-                    curScroll = $timeLine.scrollLeft();
-                    $timeLine
-                        .scrollLeft(Math.ceil(curScroll / step) * step)
-                        .trigger('zoom');
+                    helpers.zoom('-');
                 })
                 .on('click', '.scroll-right', function () {
                     var step = $ruler.width() / 24,
@@ -419,13 +422,14 @@
             console.log('plugin started');
             console.log('args: ', arguments);
 
-            var settings = $.extend( {}, options),
-                eventsList;
+            var eventsList;
+
+            settings = $.extend(defaults, options);
 
             if ((typeof this === 'object') && this.jquery) {
                 // Вызываем плагин как метод jQuery-элемента:
                 $pluginContainer = this;
-                this.addClass('hidden');
+                this.addClass('hidden stages-scale');
 
                 // Сортируем коллекцию событий по датам, получаем массив событий
                 helpers.sortEventNodes($pluginContainer);
@@ -448,8 +452,8 @@
                     .prepend($controls)
                     .append($('<div class="legend"></div>'));
 
-                helpers.redraw(firstEventDate, lastEventDate);
-                helpers.drawRuler('24h');
+                helpers.redraw();
+                helpers.drawRuler();
 
                 // helpers.groupEvents(1);
 
@@ -465,10 +469,6 @@
 
             }
 
-        },
-
-        another: function() {
-            helpers.printTest();
         }
     };
 
