@@ -1,8 +1,3 @@
-console.time('init');
-$('.stages-scale').stagesScale([1, 2, 3, 4, 5],  {'start': 'auto', 'finish': 'auto', 'height': 500});
-console.timeEnd('init');
-
-
 var dataArray = [
     {date: "2018-02-02 04:11:00", type: "тип события 1", icon: "type1", title: "Заголовок 1", text: "html-текст события 1"},
     {date: "2018-02-02 04:23:00", type: "тип события 1", icon: "type1", title: "Заголовок 2", text: "html-текст события 2"},
@@ -33,12 +28,16 @@ var dataArray = [
     {date: "2018-02-02 17:10:00", type: "тип события 5", icon: "type5", title: "Заголовок 27", text: "html-текст события 27"},
     {date: "2018-02-02 18:33:00", type: "тип события 1", icon: "type1", title: "Заголовок 28", text: "Еще некий html-текст события 28"},
     {date: "2018-02-02 18:45:00", type: "тип события 1", icon: "type1", title: "Заголовок 29", text: "html-текст события 29"}
-    ];
+];
 
 var $timeLine = $.stagesScale(dataArray, {start: 8, finish: 14});
 
 console.log($timeLine);
 
 $('body').append($timeLine);
+
+// console.time('init');
+$('.data').stagesScale({'start': 'auto', 'finish': 20, 'height': 500});
+// console.timeEnd('init');
 
 // $.stagesScale('another');

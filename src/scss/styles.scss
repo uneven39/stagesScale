@@ -3,6 +3,16 @@ $time-line-ruler-height: 20px;
 
 $ruler-24h-min-width: 992px;
 
+$event-marker-color-base: #fea94d;
+$event-marker-color-outer: adjust-hue($event-marker-color-base, 13%);
+
+$event-marker-group-color-base: #2271b0;
+$event-marker-group-color-outer: #65a2c2;
+
+
+$event-icon-file-color-base: #7285f6;
+$event-icon-file-color-outer: #8a86f6;
+
 .hidden {
   display: none;
 }
@@ -34,7 +44,7 @@ $ruler-24h-min-width: 992px;
 
   .time-line {
     position: relative;
-    padding: 10px 25px;
+    padding: 30px 25px 10px;
     height: $time-line-height;
     width: 100%;
     overflow-x: auto;
@@ -109,41 +119,114 @@ $ruler-24h-min-width: 992px;
       height: 40px;
       width: 100%;
       background-color: #aeaeae;
+      z-index: 1;
 
       &-item {
         position: absolute;
-        width: 10px;
-        height: 10px;
-        background-color: #ffae00;
-        border-radius: 5px;
-        margin-left: -5px;
+        width: 36px;
+        height: 36px;
+        background: radial-gradient(circle closest-side, $event-marker-color-base 13px, $event-marker-color-outer 13px);
+        border-radius: 18px;
+        margin-left: -18px;
         left: 0;
-        top: 0;
-        font-size: 10px;
+        bottom: 21px;
+
+        &:before {
+          position: absolute;
+          z-index: -5;
+          width: 0;
+          height: 0;
+          left: 3px;
+          content: '';
+          display: inline-block;
+          border-left: 15px solid transparent;
+          border-right: 15px solid transparent;
+          border-top: 17px solid $event-marker-color-base;
+          margin-top: 28px;
+        }
+
+        &:after {
+          content: "\2022";
+          text-indent: -5px;
+          font-size: 40px;
+          padding-bottom: 5px;
+          color: #333;
+          text-shadow: 0 0 3px #fff;
+          position: absolute;
+          display: block;
+          width: 4px;
+          height: 15px;
+          background-color: $event-marker-color-base;
+          left: 16px;
+          bottom: -18px;
+          z-index: -10;
+        }
+
+        // event with icon label
+        &.icon-file {
+          background-image: url('../icons/file.png'),
+          radial-gradient(circle closest-side,
+                          $event-icon-file-color-base 13px,
+                          $event-icon-file-color-outer 13px);
+          background-size: 60%, 100%;
+          background-position: center;
+          background-repeat: no-repeat;
+
+          &:before {
+            border-top: 17px solid $event-icon-file-color-base;
+          }
+          &:after {
+            background-color: $event-icon-file-color-base;
+          }
+
+        }
       }
 
       .group-by {
         position: absolute;
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        background-color: #284380;
-        border-radius: 10px;
-        margin-left: -10px;
+        content: attr(data-count);
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        font-weight: bold;
+        color: #ffffff;
+        background: radial-gradient(circle closest-side, $event-marker-group-color-base 13px, $event-marker-group-color-outer 13px);
+        border-radius: 18px;
+        margin-left: -18px;
         left: 0;
-        top: 0;
-        font-size: 12px;
+        bottom: 21px;
+
+        &:before {
+          position: absolute;
+          z-index: -5;
+          width: 0;
+          height: 0;
+          left: 3px;
+          content: '';
+          display: inline-block;
+          border-left: 15px solid transparent;
+          border-right: 15px solid transparent;
+          border-top: 17px solid $event-marker-group-color-base;
+          margin-top: 28px;
+        }
 
         &:after {
-          content: attr(data-count);
-          display: block;
+          content: "\2022";
+          text-indent: -5px;
+          font-size: 40px;
+          line-height: initial;
+          padding-bottom: 5px;
+          color: #333;
+          text-shadow: 0 0 3px #fff;
           position: absolute;
-          width: 20px;
-          top: 0;
-          left: 50%;
-          margin-left: -10px;
-          text-align: center;
-          color: white;
+          display: block;
+          width: 4px;
+          height: 15px;
+          background-color: $event-marker-group-color-base;
+          left: 16px;
+          bottom: -18px;
+          z-index: -10;
         }
 
         .events-item {

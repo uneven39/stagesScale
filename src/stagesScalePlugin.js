@@ -116,7 +116,7 @@
                             $wrapper
                                 .addClass('hour')
                                 .css('left', offset + '%')
-                                .attr('data-count', $group.length);
+                                .text($group.length);
                             $group.wrapAll($wrapper);
                             break;
                         case 2:
@@ -132,7 +132,7 @@
                                     $wrapper
                                         .addClass('30min')
                                         .css('left', offset30m + '%')
-                                        .attr('data-count', $groupBy30m.length);
+                                        .text($groupBy30m.length);
                                     $groupBy30m.wrapAll($wrapper);
                                 }
                             }
@@ -150,7 +150,7 @@
                                     $wrapper
                                         .addClass('20min')
                                         .css('left', offset20m + '%')
-                                        .attr('data-count', $groupBy20m.length);
+                                        .text($groupBy20m.length);
                                     $groupBy20m.wrapAll($wrapper);
                                 }
                             }
@@ -168,7 +168,7 @@
                                     $wrapper
                                         .addClass('15min')
                                         .css('left', offset15m + '%')
-                                        .attr('data-count', $groupBy15m.length);
+                                        .text($groupBy15m.length);
                                     $groupBy15m.wrapAll($wrapper);
                                 }
                             }
@@ -186,7 +186,7 @@
                                     $wrapper
                                         .addClass('10min')
                                         .css('left', offset10m + '%')
-                                        .attr('data-count', $groupBy10m.length);
+                                        .text($groupBy10m.length);
                                     $groupBy10m.wrapAll($wrapper);
                                 }
                             }
@@ -204,7 +204,7 @@
                                     $wrapper
                                         .addClass('5min')
                                         .css('left', offset5m + '%')
-                                        .attr('data-count', $groupBy5m.length);
+                                        .text($groupBy5m.length);
                                     $groupBy5m.wrapAll($wrapper);
                                 }
                             }
@@ -223,7 +223,7 @@
                                     $wrapper
                                         .addClass('1min')
                                         .css('left', offset1m + '%')
-                                        .attr('data-count', $groupBy1m.length);
+                                        .text($groupBy1m.length);
                                     $groupBy1m.wrapAll($wrapper);
                                 }
                             }
@@ -237,6 +237,9 @@
         ungroupEvents: function() {
             console.log('ungroup');
             $events.find('.group-by').each(function(index, group) {
+                $(group).contents().filter(function(){
+                    return (this.nodeType === 3);
+                }).remove();
                 $(group).children().unwrap('.group-by');
             })
         },
@@ -282,6 +285,7 @@
                         .attr('data-text', $item.text())
                         .text('')
                         .addClass('events-item')
+                        .addClass('icon-' + $item.data('icon'))
                         .css('left', position);
                 } else {
                     $item.addClass('hidden');
@@ -365,8 +369,14 @@
         },
 
         bind: function() {
-            $timeLine
+            console.log($pluginContainer);
+            $('.time-line')
                 .on('scroll zoom', function() {
+                    $pluginContainer = $(this).closest('.stages-scale');
+                    $timeLine = $pluginContainer.find('.time-line');
+                    $events = $pluginContainer.find('.events');
+                    $ruler = $pluginContainer.find('.ruler');
+
                     var leftLimit = $timeLine.offset().left,
                         rightLimit = $timeLine.offset().left + $timeLine.width() + (+$timeLine.css('padding-right').slice(0, -2) * 2),
                         $legend = $pluginContainer.find('.legend'),
@@ -408,19 +418,41 @@
                     // console.log('==========================');
                 });
 
-            $controls
+            $('.controls')
                 .on('click', '.zoom-in', function () {
+                    $pluginContainer = $(this).closest('.stages-scale');
+                    $timeLine = $pluginContainer.find('.time-line');
+                    $events = $pluginContainer.find('.events');
+                    $ruler = $pluginContainer.find('.ruler');
+
                     helpers.zoom('+');
+                    console.log('zoom in plugin: ', $pluginContainer);
                 })
                 .on('click', '.zoom-out', function () {
+                    $pluginContainer = $(this).closest('.stages-scale');
+                    $timeLine = $pluginContainer.find('.time-line');
+                    $events = $pluginContainer.find('.events');
+                    $ruler = $pluginContainer.find('.ruler');
+
+                    console.log('zoom out plugin: ', $pluginContainer);
                     helpers.zoom('-');
                 })
                 .on('click', '.scroll-right', function () {
+                    $pluginContainer = $(this).closest('.stages-scale');
+                    $timeLine = $pluginContainer.find('.time-line');
+                    $events = $pluginContainer.find('.events');
+                    $ruler = $pluginContainer.find('.ruler');
+
                     var step = $ruler.width() / 24,
                         curScroll = $timeLine.scrollLeft();
                     $timeLine.scrollLeft(Math.ceil(curScroll / step) * step + step);
                 })
                 .on('click', '.scroll-left', function () {
+                    $pluginContainer = $(this).closest('.stages-scale');
+                    $timeLine = $pluginContainer.find('.time-line');
+                    $events = $pluginContainer.find('.events');
+                    $ruler = $pluginContainer.find('.ruler');
+
                     var step = $ruler.width() / 24,
                         curScroll = $timeLine.scrollLeft();
                     $timeLine.scrollLeft(Math.ceil(curScroll / step) * step - step);
@@ -435,15 +467,17 @@
 
             var eventsList;
 
-            settings = $.extend(defaults, options);
-            seed += 1;
-            console.log('plugin seed: ', seed);
-
             if ((typeof this === 'object') && this.jquery) {
                 // Вызываем плагин как метод jQuery-элемента:
-                this.addClass('stages-scale-' + seed);
-                $pluginContainer = this;
-                console.log($pluginContainer);
+                if ((arguments[0] === Object(arguments[0])) && !Array.isArray(arguments[0])) {
+                    settings = $.extend(defaults, arguments[0]);
+                    console.log('plugin seed: ', seed, settings, arguments[0]);
+                }
+                seed += 1;
+                this
+                    .addClass('stages-scale')
+                    .attr('id', 'stages-scale-' + seed);
+                $pluginContainer = $('#stages-scale-' + seed);
 
                 // Сортируем коллекцию событий по датам, получаем массив событий
                 helpers.sortEventNodes($pluginContainer);
@@ -463,7 +497,10 @@
                     .addClass('zoom-1');
                 $events = $timeLine.find('.events');
                 $pluginContainer
-                    .prepend($controls)
+                    .prepend($('<div class="controls">' +
+                        '<span class="control scroll-left"> < </span><span class="control scroll-right"> > </span>' +
+                        '<span class="control zoom-in"> + </span><span class="control zoom-out"> - </span>' +
+                        '</div>'))
                     .append($('<div class="legend"></div>'));
                 $controls = $pluginContainer.find('.controls');
 
@@ -476,12 +513,19 @@
 
                 helpers.zoom();
 
+                console.log($controls);
+
             } else if (typeof this === 'function') {
                 // Вызываем плагин как глобальный метод jQuery:
                 // проверяем, что на входе есть массив с данными
                 if (Array.isArray(arguments[0])) {
+                    seed += 1;
+                    if ((arguments[1] === Object(arguments[1])) && !Array.isArray(arguments[1])) {
+                        settings = $.extend(defaults, arguments[1]);
+                        console.log('plugin seed: ', seed, settings, arguments[1]);
+                    }
                     // Сортируем массив событий по датам
-                    eventsList = arguments[0].sort(function(itemA,itemB){
+                    eventsList = arguments[0].sort(function(itemA,itemB) {
                         return (new Date(itemA.date)).getTime() - (new Date(itemB.date)).getTime();
                     });
 
@@ -495,10 +539,12 @@
                     for (var i = 0; i < eventsList.length; i++) {
                         html += '<div data-date="' + eventsList[i].date + '" data-type="' + eventsList[i].type +
                             '" data-icon="' + eventsList[i].icon + '" data-title="' + eventsList[i].title +
-                            '" data-text="' + eventsList[i].text + '" class="events-item">' + eventsList[i].text + '</div> ';
+                            '" data-text="' + eventsList[i].text + '" class="events-item">' + eventsList[i].text +
+                            '</div> ';
                     }
-                    $pluginContainer = $('<div class="stages-scale stages-scale-' + seed + '"><div class="time-line"><div class="events">' + html
-                        + '</div></div></div>');
+
+                    $pluginContainer = $('<div class="stages-scale" id="stage-scale-' + seed + '"><div class="time-line">' +
+                        '<div class="events">' + html + '</div></div></div>');
                     console.log($pluginContainer);
 
                     // Инициализируем DOM-элементы
@@ -507,7 +553,7 @@
                         .addClass('zoom-1');
                     $events = $timeLine.find('.events');
                     $pluginContainer
-                        .prepend($controls.clone())
+                        .prepend($controls)
                         .append($('<div class="legend"></div>'));
                     $controls = $pluginContainer.find('.controls');
 
@@ -517,6 +563,8 @@
                     // helpers.groupEvents(1);
 
                     helpers.bind();
+
+                    console.log($controls);
 
                     return $pluginContainer;
                 }
