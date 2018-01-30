@@ -116,7 +116,7 @@
                             $wrapper
                                 .addClass('hour')
                                 .css('left', offset + '%')
-                                .text($group.length);
+                                .attr('data-count', $group.length);
                             $group.wrapAll($wrapper);
                             break;
                         case 2:
@@ -132,7 +132,7 @@
                                     $wrapper
                                         .addClass('30min')
                                         .css('left', offset30m + '%')
-                                        .text($groupBy30m.length);
+                                        .attr('data-count', $groupBy30m.length);
                                     $groupBy30m.wrapAll($wrapper);
                                 }
                             }
@@ -150,7 +150,7 @@
                                     $wrapper
                                         .addClass('20min')
                                         .css('left', offset20m + '%')
-                                        .text($groupBy20m.length);
+                                        .attr('data-count', $groupBy20m.length);
                                     $groupBy20m.wrapAll($wrapper);
                                 }
                             }
@@ -168,7 +168,7 @@
                                     $wrapper
                                         .addClass('15min')
                                         .css('left', offset15m + '%')
-                                        .text($groupBy15m.length);
+                                        .attr('data-count', $groupBy15m.length);
                                     $groupBy15m.wrapAll($wrapper);
                                 }
                             }
@@ -186,7 +186,7 @@
                                     $wrapper
                                         .addClass('10min')
                                         .css('left', offset10m + '%')
-                                        .text($groupBy10m.length);
+                                        .attr('data-count', $groupBy10m.length);
                                     $groupBy10m.wrapAll($wrapper);
                                 }
                             }
@@ -204,7 +204,7 @@
                                     $wrapper
                                         .addClass('5min')
                                         .css('left', offset5m + '%')
-                                        .text($groupBy5m.length);
+                                        .attr('data-count', $groupBy5m.length);
                                     $groupBy5m.wrapAll($wrapper);
                                 }
                             }
@@ -223,7 +223,7 @@
                                     $wrapper
                                         .addClass('1min')
                                         .css('left', offset1m + '%')
-                                        .text($groupBy1m.length);
+                                        .attr('data-count', $groupBy1m.length);
                                     $groupBy1m.wrapAll($wrapper);
                                 }
                             }
@@ -237,9 +237,6 @@
         ungroupEvents: function() {
             console.log('ungroup');
             $events.find('.group-by').each(function(index, group) {
-                $(group).contents().filter(function(){
-                    return (this.nodeType === 3);
-                }).remove();
                 $(group).children().unwrap('.group-by');
             })
         },
@@ -392,21 +389,21 @@
                         // Checking if event item or group is in time-line viewport:
                         if ((leftBorder >= leftLimit) && (leftBorder <= rightLimit)) {
                             // Check if group or single event
-                            if (el.classList.contains('group-by')) {
+                            if ($(el).hasClass('group-by')) {
                                 // group:
                                 $(el).children().each(function(index, item) {
                                     // console.log('event ' + item.dataset.title + ' in viewport');
                                     var $eventData = $('<div class="legend-item"></div>');
-                                    $eventData.append('<h4>' + item.dataset.title + '</h4>' +
-                                        '<div class="description">' + item.dataset.text + '</div>');
+                                    $eventData.append('<h4>' + $(item).data('title')+ '</h4>' +
+                                        '<div class="description">' + $(item).data('text') + '</div>');
                                     $legendContent.append($eventData);
                                 });
-                            } else if (el.classList.contains('events-item')) {
+                            } else if ($(el).hasClass('events-item')) {
                                 // single:
                                 // console.log('event ' + el.dataset.title + ' in viewport');
                                 var $eventData = $('<div class="legend-item"></div>');
-                                $eventData.append('<h4>' + el.dataset.title + '</h4>' +
-                                    '<div class="description">' + el.dataset.text + '</div>');
+                                $eventData.append('<h4>' + $(el).data('title') + '</h4>' +
+                                    '<div class="description">' + $(el).data('text') + '</div>');
                                 $legendContent.append($eventData);
                             }
                         }
@@ -419,6 +416,7 @@
                 });
 
             $('.controls')
+            // TODO: make smooth scrolling and zooming
                 .on('click', '.zoom-in', function () {
                     $pluginContainer = $(this).closest('.stages-scale');
                     $timeLine = $pluginContainer.find('.time-line');

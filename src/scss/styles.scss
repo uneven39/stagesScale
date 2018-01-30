@@ -1,4 +1,4 @@
-$time-line-height: 120px;
+$time-line-height: 140px;
 $time-line-ruler-height: 20px;
 
 $ruler-24h-min-width: 992px;
@@ -13,6 +13,57 @@ $event-marker-group-color-outer: #65a2c2;
 $event-icon-file-color-base: #7285f6;
 $event-icon-file-color-outer: #8a86f6;
 
+@mixin event-marker-label-base($color-base, $color-outer) {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 60'%3E%3Cpath fill='#{$color-base}' d='M 20,0 C 8.9542728,1e-7 -2e-7,8.954275 0,20 7.7224e-4,25.216359 2.0377657,30.224442 5.6796875,33.958984 l -0.00391,0 C 9.7839813,38.172293 15.946237,44.492984 18,46.599609 L 17.999967,60 l 4,0 L 22,46.599609 c 2.053947,-2.106445 8.21686,-8.4265 12.324219,-12.640625 l -0.0293,0 C 37.945576,30.228268 39.992843,25.219723 40,20 40,8.954275 31.045726,0 20,0 Z' /%3E%3C/svg%3E");
+  &:before {
+    border-color: $color-outer;
+  }
+}
+
+@mixin event-marker-icon($color-base, $color-outer, $icon-bg-url, $icon-bg-size) {
+  background: url($icon-bg-url), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 60'%3E%3Cpath fill='#{$color-base}' d='M 20,0 C 8.9542728,1e-7 -2e-7,8.954275 0,20 7.7224e-4,25.216359 2.0377657,30.224442 5.6796875,33.958984 l -0.00391,0 C 9.7839813,38.172293 15.946237,44.492984 18,46.599609 L 17.999967,60 l 4,0 L 22,46.599609 c 2.053947,-2.106445 8.21686,-8.4265 12.324219,-12.640625 l -0.0293,0 C 37.945576,30.228268 39.992843,25.219723 40,20 40,8.954275 31.045726,0 20,0 Z' /%3E%3C/svg%3E");
+  background-size: $icon-bg-size, 100%;
+  background-position: 50% 22%;
+  background-repeat: no-repeat;
+
+  &:before {
+    border-color: $color-outer;
+  }
+}
+
+@mixin event-marker-base($color-base, $color-outer) {
+  position: absolute;
+  width: 40px;
+  height: 60px;
+  bottom: 0;
+  margin-left: -20px;
+  @include event-marker-label-base($color-base, $color-outer);
+  &:before {
+    content: '';
+    width: 38px;
+    height: 38px;
+    margin-left: 1px;
+    margin-top: 1px;
+    border-radius: 50%;
+    border-width: 5px;
+    border-style: solid;
+    display: block;
+    box-sizing: border-box;
+  }
+  &:after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #333;
+    border-radius: 50%;
+    bottom: -5px;
+    left: 14px;
+    border: 1px solid #aaa;
+  }
+}
+
 .hidden {
   display: none;
 }
@@ -20,6 +71,7 @@ $event-icon-file-color-outer: #8a86f6;
 .stages-scale {
 
   position: relative;
+  clear: both;
   margin: 10px;
 
   font-family: sans-serif, serif;
@@ -122,111 +174,26 @@ $event-icon-file-color-outer: #8a86f6;
       z-index: 1;
 
       &-item {
-        position: absolute;
-        width: 36px;
-        height: 36px;
-        background: radial-gradient(circle closest-side, $event-marker-color-base 13px, $event-marker-color-outer 13px);
-        border-radius: 18px;
-        margin-left: -18px;
-        left: 0;
-        bottom: 21px;
+        @include event-marker-base($event-marker-color-base, $event-marker-color-outer);
+        z-index: 5;
 
-        &:before {
-          position: absolute;
-          z-index: -5;
-          width: 0;
-          height: 0;
-          left: 3px;
-          content: '';
-          display: inline-block;
-          border-left: 15px solid transparent;
-          border-right: 15px solid transparent;
-          border-top: 17px solid $event-marker-color-base;
-          margin-top: 28px;
-        }
-
-        &:after {
-          content: "\2022";
-          text-indent: -5px;
-          font-size: 40px;
-          padding-bottom: 5px;
-          color: #333;
-          text-shadow: 0 0 3px #fff;
-          position: absolute;
-          display: block;
-          width: 4px;
-          height: 15px;
-          background-color: $event-marker-color-base;
-          left: 16px;
-          bottom: -18px;
-          z-index: -10;
-        }
-
-        // event with icon label
-        &.icon-file {
-          background-image: url('../icons/file.png'),
-          radial-gradient(circle closest-side,
-                          $event-icon-file-color-base 13px,
-                          $event-icon-file-color-outer 13px);
-          background-size: 60%, 100%;
-          background-position: center;
-          background-repeat: no-repeat;
-
-          &:before {
-            border-top: 17px solid $event-icon-file-color-base;
+        &.icon{
+          &-file {
+            @include event-marker-icon($event-icon-file-color-base, $event-icon-file-color-outer, "../icons/file.png", 60%)
           }
-          &:after {
-            background-color: $event-icon-file-color-base;
-          }
-
         }
       }
 
       .group-by {
-        position: absolute;
-        content: attr(data-count);
-        width: 36px;
-        height: 36px;
-        line-height: 36px;
-        text-align: center;
-        font-weight: bold;
-        color: #ffffff;
-        background: radial-gradient(circle closest-side, $event-marker-group-color-base 13px, $event-marker-group-color-outer 13px);
-        border-radius: 18px;
-        margin-left: -18px;
-        left: 0;
-        bottom: 21px;
+        @include event-marker-base($event-marker-group-color-base, $event-marker-group-color-outer);
+        z-index: 10;
 
         &:before {
-          position: absolute;
-          z-index: -5;
-          width: 0;
-          height: 0;
-          left: 3px;
-          content: '';
-          display: inline-block;
-          border-left: 15px solid transparent;
-          border-right: 15px solid transparent;
-          border-top: 17px solid $event-marker-group-color-base;
-          margin-top: 28px;
-        }
-
-        &:after {
-          content: "\2022";
-          text-indent: -5px;
-          font-size: 40px;
-          line-height: initial;
-          padding-bottom: 5px;
-          color: #333;
-          text-shadow: 0 0 3px #fff;
-          position: absolute;
-          display: block;
-          width: 4px;
-          height: 15px;
-          background-color: $event-marker-group-color-base;
-          left: 16px;
-          bottom: -18px;
-          z-index: -10;
+          text-align: center;
+          font-weight: bold;
+          line-height: 30px;
+          color: #fff;
+          content: attr(data-count);
         }
 
         .events-item {
@@ -247,20 +214,19 @@ $event-icon-file-color-outer: #8a86f6;
         box-sizing: border-box;
         text-align: center;
         float: left;
-        border-right: 2px solid black;
+        border-right: 1px solid black;
+        border-left: 1px solid black;
 
         > i {
           position: relative;
           display: inline-block;
           width: 8.3333333%;
-          //margin-top: 60%;
           height: 40%;
           box-sizing: border-box;
           border-right: 1px solid black;
 
           &:nth-child(6) {
             height: 60%;
-            //margin-top: 40%;
           }
 
           &:last-child {
@@ -279,8 +245,8 @@ $event-icon-file-color-outer: #8a86f6;
           top: 100%;
         }
 
-        &:before {
-
+        &:last-child {
+          border-right: 2px solid black;
         }
 
         &:first-child {

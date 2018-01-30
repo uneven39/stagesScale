@@ -29,7 +29,7 @@ module.exports = {
           },
           // PNG-icons
           {
-              test: /\.(png|jpg|gif)$/,
+              test: /\.(png|jpg|gif|svg)$/,
               use: [
                   {
                       loader: 'url-loader',
