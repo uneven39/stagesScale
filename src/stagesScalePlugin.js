@@ -13,7 +13,8 @@
     var seed = 0,
         defaults = {'start': 0,
             'finish': 24,
-            'legendHeight': 'auto'
+            'legendHeight': 'auto',
+            'zoomLevel' : 1
         },
         settings,
         ruler24Labels = [
@@ -192,6 +193,7 @@
                             }
                             break;
                         case 6:
+                        case 7:
                             for (var m5 = 4; m5 <= 59; m5 = m5 + 5) {
                                 var $groupBy5m = $group.filter(function(index, event) {
                                     var date = new Date($(event).data('date')),
@@ -209,8 +211,9 @@
                                 }
                             }
                             break;
-                        case 7:
                         case 8:
+                        case 9:
+                        case 10:
                             for (var m = 0; m <= 59; m++) {
                                 var $groupBy1m = $group.filter(function(index, event) {
                                     var date = new Date($(event).data('date')),
@@ -326,14 +329,12 @@
 
         zoom: function(zoomType) {
             var newZoomLevel,
-                curStep,
-                newStep,
-                stepAmount,
+                curZoomLevel = zoomLevel,
                 curScroll;
 
             switch (zoomType) {
                 case '+':
-                    newZoomLevel = zoomLevel === 8 ? zoomLevel : zoomLevel + 1;
+                    newZoomLevel = zoomLevel === 10 ? zoomLevel : zoomLevel + 1;
                     break;
                 case '-':
                     newZoomLevel = zoomLevel === 1 ? 1 : zoomLevel - 1;
@@ -348,55 +349,21 @@
 
             zoomLevel = newZoomLevel;
 
-            curStep = $ruler.width() / 24;
-            curScroll = $timeLine.scrollLeft();
-            stepAmount = curScroll / curStep;
+            console.log('zoom levels: ', curZoomLevel, newZoomLevel)
 
             $timeLine.removeClass(function(i, className){
                 return (className.match (/\bzoom-\S+/g) || []).join(' ');
             });
 
-            // $timeLine.addClass('zoom-' + newZoomLevel);
-
-            newStep = $ruler.width() / 24;
-
-            // $timeLine
-            //     .scrollLeft(Math.ceil(stepAmount * newStep))
-            //     .trigger('zoom');
-
-            /*$timeLine.animate({
-                scrollLeft: Math.ceil(stepAmount * newStep)
-            }, {
-                step: function(now, fx){
-                    console.log(now, fx);
-                }}, 500)
-                .trigger('zoom');*/
             curScroll = $timeLine.scrollLeft();
-            var curWidth = $ruler.width(),
-                viewWidth = $timeLine.width(),
-                offset;
 
-            $timeLine.find('.ruler').animate({
-                width: 100 * newZoomLevel + '%'
-            }, {duration: 300,
-                step: function(now, fx){
-                    var $ruler = $(fx.elem),
-                        newWidth = $ruler.width(),
-                        newRatio = newWidth / curWidth;
-                    console.log(now, fx, offset);
+            console.log('start zoom');
 
-                    offset = (curScroll + $timeLine.css('padding-left').slice(0, 2) / 2 ) * newRatio + newRatio * viewWidth / 2 - viewWidth / 2;
-                    $timeLine.scrollLeft(offset);
+            $timeLine.animate({scrollLeft: (curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2}, 300);
+            $ruler.animate({width: 100 * newZoomLevel + '%'}, 300);
+            $events.animate({width: 100 * newZoomLevel + '%'}, 300);
 
-
-                    console.log('step scroll');
-
-                    curScroll = $timeLine.scrollLeft();
-
-                }});
-            $timeLine.trigger('zoom').find('.events').animate({
-                width: 100 * newZoomLevel + '%'
-            }, {duration: 500});
+            console.log('end zoom');
         },
 
         bind: function() {
@@ -502,9 +469,11 @@
             if ((typeof this === 'object') && this.jquery) {
                 // Вызываем плагин как метод jQuery-элемента:
 
+                console.log('plugin seed: ', seed, settings, arguments[0]);
                 if ((arguments[0] === Object(arguments[0])) && !Array.isArray(arguments[0])) {
                     settings = $.extend(defaults, arguments[0]);
-                    console.log('plugin seed: ', seed, settings, arguments[0]);
+                } else {
+                    settings = defaults;
                 }
                 seed += 1;
                 this
@@ -544,7 +513,7 @@
 
                 helpers.bind();
 
-                helpers.zoom();
+                helpers.zoom('-');
 
                 console.log($controls);
 
