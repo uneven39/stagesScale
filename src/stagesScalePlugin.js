@@ -349,17 +349,15 @@
 
             zoomLevel = newZoomLevel;
 
-            console.log('zoom levels: ', curZoomLevel, newZoomLevel)
-
-            $timeLine.removeClass(function(i, className){
-                return (className.match (/\bzoom-\S+/g) || []).join(' ');
-            });
+            console.log('zoom levels: ', curZoomLevel, newZoomLevel);
 
             curScroll = $timeLine.scrollLeft();
 
             console.log('start zoom');
 
-            $timeLine.animate({scrollLeft: (curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2}, 300);
+            $timeLine
+                .trigger('zoom')
+                .animate({scrollLeft: (curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2}, 300);
             $ruler.animate({width: 100 * newZoomLevel + '%'}, 300);
             $events.animate({width: 100 * newZoomLevel + '%'}, 300);
 
@@ -394,16 +392,30 @@
                                 // group:
                                 $(el).children().each(function(index, item) {
                                     // console.log('event ' + item.dataset.title + ' in viewport');
-                                    var $eventData = $('<div class="legend-item"></div>');
-                                    $eventData.append('<h4>' + $(item).data('title')+ '</h4>' +
+                                    var $eventData = $('<div class="legend-item"></div>'),
+                                        date = new Date($(item).data('date')),
+                                        dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
+                                            ('0' + date.getSeconds()).slice(-2) + ' ' + ('0' + date.getDate()).slice(-2) +
+                                            '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
+
+                                    $eventData.append('<div class="header icon-' + $(item).data('icon') + '">' +
+                                        dateStr + '<h4>' + $(item).data('title') + '</h4>' +
+                                        '</div>' +
                                         '<div class="description">' + $(item).data('text') + '</div>');
                                     $legendContent.append($eventData);
                                 });
                             } else if ($(el).hasClass('events-item')) {
                                 // single:
                                 // console.log('event ' + el.dataset.title + ' in viewport');
-                                var $eventData = $('<div class="legend-item"></div>');
-                                $eventData.append('<h4>' + $(el).data('title') + '</h4>' +
+                                var $eventData = $('<div class="legend-item"></div>'),
+                                    date = new Date($(el).data('date')),
+                                    dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
+                                        ('0' + date.getSeconds()).slice(-2) + ' ' + ('0' + date.getDate()).slice(-2) +
+                                        '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
+
+                                $eventData.append('<div class="header icon-' + $(el).data('icon') + '">' +
+                                    dateStr + '<h4>' + $(el).data('title') + '</h4>' +
+                                    '</div>' +
                                     '<div class="description">' + $(el).data('text') + '</div>');
                                 $legendContent.append($eventData);
                             }
@@ -444,7 +456,7 @@
 
                     var step = $ruler.width() / 24,
                         curScroll = $timeLine.scrollLeft();
-                    $timeLine.scrollLeft(Math.ceil(curScroll / step) * step + step);
+                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step + step}, 300);
                 })
                 .on('click', '.scroll-left', function () {
                     $pluginContainer = $(this).closest('.stages-scale');
@@ -454,7 +466,7 @@
 
                     var step = $ruler.width() / 24,
                         curScroll = $timeLine.scrollLeft();
-                    $timeLine.scrollLeft(Math.ceil(curScroll / step) * step - step);
+                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step - step}, 300);
                 })
         }
     };

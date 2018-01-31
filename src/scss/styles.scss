@@ -76,7 +76,7 @@ $event-icon-file-color-outer: #8a86f6;
 
   font-family: sans-serif, serif;
 
-  &:after {
+  /*&:after {
     position: absolute;
     content: '';
     display: block;
@@ -87,7 +87,7 @@ $event-icon-file-color-outer: #8a86f6;
     left: 50%;
     bottom: 0;
     background-color: red;
-  }
+  }*/
 
   .hidden {
     display: none;
@@ -115,69 +115,6 @@ $event-icon-file-color-outer: #8a86f6;
     overflow-x: auto;
     overflow-y: hidden;
     box-sizing: border-box;
-
-    &.zoom-1 {
-      .events, .ruler {
-        width: 100% !important;
-      }
-    }
-
-    &.zoom-2 {
-      .events, .ruler {
-        width: 200% !important;
-      }
-    }
-
-    &.zoom-3 {
-      .events, .ruler {
-        width: 300% !important;
-      }
-
-      .ruler i:nth-child(4n) {
-        height: 60%;
-      }
-      .ruler i:nth-child(6n) {
-        height: 40% !important;
-      }
-    }
-
-    &.zoom-4 {
-      .events, .ruler {
-        width: 400% !important;
-      }
-
-      .ruler i:nth-child(3n) {
-        height: 60%;
-      }
-    }
-
-    &.zoom-5 {
-      .events, .ruler {
-        width: 480% !important;
-      }
-
-      .ruler i:nth-child(even) {
-        height: 60%;
-      }
-    }
-
-    &.zoom-6 {
-      .events, .ruler {
-        width: 600% !important;
-      }
-    }
-
-    &.zoom-7 {
-      .events, .ruler {
-        width: 800% !important;
-      }
-    }
-
-    &.zoom-8 {
-      .events, .ruler {
-        width: 1200% !important;
-      }
-    }
 
     .events {
       overflow: visible !important;
@@ -288,7 +225,7 @@ $event-icon-file-color-outer: #8a86f6;
       width: 33.33%;
       visibility: hidden;
       position: absolute;
-      padding: 5px 15px;
+      padding: 5px 15px 20px 40px;
       box-sizing: border-box;
     }
 
@@ -301,8 +238,37 @@ $event-icon-file-color-outer: #8a86f6;
         position: relative;
         width: 100%;
         visibility: visible;
-        padding: 5px 15px;
+        padding: 5px 15px 20px 40px;
         box-sizing: border-box;
+
+        .header {
+          h4 {
+            margin: 5px 0 10px;
+
+            &:before {
+              content: '';
+              position: absolute;
+              width: 28px;
+              height: 28px;
+              background-color: gray;
+              border-radius: 15px;
+              top: 0;
+              left: 0;
+            }
+          }
+
+          &.icon{
+            &-file {
+              & h4:before {
+                background-image: url("../icons/file.png");
+                background-position: center;
+                background-size: 20px auto;
+                background-repeat: no-repeat;
+              }
+            }
+          }
+        }
+
       }
     }
   }
