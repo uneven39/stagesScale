@@ -356,13 +356,30 @@
                 return (className.match (/\bzoom-\S+/g) || []).join(' ');
             });
 
-            $timeLine.addClass('zoom-' + newZoomLevel);
+            // $timeLine.addClass('zoom-' + newZoomLevel);
 
             newStep = $ruler.width() / 24;
 
-            $timeLine
-                .scrollLeft(Math.ceil(stepAmount * newStep))
-                .trigger('zoom');
+            // $timeLine
+            //     .scrollLeft(Math.ceil(stepAmount * newStep))
+            //     .trigger('zoom');
+
+            /*$timeLine.animate({
+                scrollLeft: Math.ceil(stepAmount * newStep)
+            }, {
+                step: function(now, fx){
+                    console.log(now, fx);
+                }}, 500)
+                .trigger('zoom');*/
+            $timeLine.find('.ruler').animate({
+                width: 100 * newZoomLevel + '%'
+            }, {duration: 500,
+                step: function(now, fx){
+                    console.log(now, fx);
+                }});
+            $timeLine.find('.events').animate({
+                width: 100 * newZoomLevel + '%'
+            }, {duration: 500});
         },
 
         bind: function() {
@@ -467,6 +484,7 @@
 
             if ((typeof this === 'object') && this.jquery) {
                 // Вызываем плагин как метод jQuery-элемента:
+
                 if ((arguments[0] === Object(arguments[0])) && !Array.isArray(arguments[0])) {
                     settings = $.extend(defaults, arguments[0]);
                     console.log('plugin seed: ', seed, settings, arguments[0]);

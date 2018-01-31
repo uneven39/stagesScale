@@ -167,6 +167,7 @@ $event-icon-file-color-outer: #8a86f6;
     }
 
     .events {
+      overflow: visible !important;
       position: relative;
       height: 40px;
       width: 100%;
@@ -203,6 +204,7 @@ $event-icon-file-color-outer: #8a86f6;
     }
 
     .ruler {
+      overflow: visible !important;
       position: relative;
       width: 100%;
       height: $time-line-ruler-height;
