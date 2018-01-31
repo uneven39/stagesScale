@@ -371,13 +371,30 @@
                     console.log(now, fx);
                 }}, 500)
                 .trigger('zoom');*/
+            curScroll = $timeLine.scrollLeft();
+            var curWidth = $ruler.width(),
+                viewWidth = $timeLine.width(),
+                offset;
+
             $timeLine.find('.ruler').animate({
                 width: 100 * newZoomLevel + '%'
-            }, {duration: 500,
+            }, {duration: 300,
                 step: function(now, fx){
-                    console.log(now, fx);
+                    var $ruler = $(fx.elem),
+                        newWidth = $ruler.width(),
+                        newRatio = newWidth / curWidth;
+                    console.log(now, fx, offset);
+
+                    offset = (curScroll + $timeLine.css('padding-left').slice(0, 2) / 2 ) * newRatio + newRatio * viewWidth / 2 - viewWidth / 2;
+                    $timeLine.scrollLeft(offset);
+
+
+                    console.log('step scroll');
+
+                    curScroll = $timeLine.scrollLeft();
+
                 }});
-            $timeLine.find('.events').animate({
+            $timeLine.trigger('zoom').find('.events').animate({
                 width: 100 * newZoomLevel + '%'
             }, {duration: 500});
         },

@@ -76,6 +76,19 @@ $event-icon-file-color-outer: #8a86f6;
 
   font-family: sans-serif, serif;
 
+  &:after {
+    position: absolute;
+    content: '';
+    display: block;
+    height: 70px;
+    width: 2px;
+    margin-left: -1px;
+    z-index: 100;
+    left: 50%;
+    bottom: 0;
+    background-color: red;
+  }
+
   .hidden {
     display: none;
   }
