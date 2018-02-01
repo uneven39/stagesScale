@@ -40,3 +40,6 @@ $('.example').stagesScale(dataArray, {start: 0, finish: 20, 'legendHeight': 500}
 // console.timeEnd('init');
 
 // $.stagesScale('another');
+
+$('.test1').eventsTimeLine();
+// $('.test2').eventsTimeLine();

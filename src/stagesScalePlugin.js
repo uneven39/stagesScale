@@ -592,7 +592,7 @@
                     }
                 }
 
-                $pluginContainer.find('.legend').css('height', settings.legendHeight)
+                $pluginContainer.find('.legend').css('height', settings.legendHeight);
 
                 helpers.redraw();
                 helpers.drawRuler();
