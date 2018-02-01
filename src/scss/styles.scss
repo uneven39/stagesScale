@@ -76,19 +76,6 @@ $event-icon-file-color-outer: #8a86f6;
 
   font-family: sans-serif, serif;
 
-  /*&:after {
-    position: absolute;
-    content: '';
-    display: block;
-    height: 70px;
-    width: 2px;
-    margin-left: -1px;
-    z-index: 100;
-    left: 50%;
-    bottom: 0;
-    background-color: red;
-  }*/
-
   .hidden {
     display: none;
   }
@@ -131,6 +118,10 @@ $event-icon-file-color-outer: #8a86f6;
         &.icon{
           &-file {
             @include event-marker-icon($event-icon-file-color-base, $event-icon-file-color-outer, "../icons/file.png", 60%)
+          }
+
+          &-folder {
+            @include event-marker-icon($event-icon-file-color-base, $event-icon-file-color-outer, "../icons/folder.png", 50%)
           }
         }
       }
@@ -220,6 +211,9 @@ $event-icon-file-color-outer: #8a86f6;
   }
 
   .legend {
+    overflow-y: auto;
+    overflow-x: hidden;
+
     &-item {
       display: inline-block;
       width: 33.33%;
@@ -261,6 +255,15 @@ $event-icon-file-color-outer: #8a86f6;
             &-file {
               & h4:before {
                 background-image: url("../icons/file.png");
+                background-position: center;
+                background-size: 20px auto;
+                background-repeat: no-repeat;
+              }
+            }
+
+            &-folder {
+              & h4:before {
+                background-image: url("../icons/folder.png");
                 background-position: center;
                 background-size: 20px auto;
                 background-repeat: no-repeat;

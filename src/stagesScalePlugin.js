@@ -221,8 +221,8 @@
                                     return (mins === m);
                                 });
                                 if ($groupBy1m.length > 1) {
-                                    var offsetAdd1m = (m + 1 - 0.5) * step / 60,
-                                        offset1m = ((step * h + offsetAdd1m) / $ruler.width()) * 100;
+                                    var offsetAdd1m = m * step / 60,
+                                        offset1m = ((step * (h - settings.start) + offsetAdd1m) / $ruler.width()) * 100;
                                     $wrapper
                                         .addClass('1min')
                                         .css('left', offset1m + '%')
@@ -266,11 +266,8 @@
             console.log('start: ', dayDate.getDate(), startDate.getTime());
             console.log('finish: ', finishDate.getHours(), finishDate.getTime());
 
-            // startDay.setUTCHours(0, 0, 0, 0);
             totalDuration = finishDate.getTime() - startDate.getTime();
 
-            // console.log('current day range: ', startDay, finishDay);
-            // console.log('current day range: ', (new Date(startDay)).toISOString(),(new Date(finishDay)).toISOString());
             console.log('durations: ', totalDuration, dayLength);
 
             $events.children().each(function(index, item) {
@@ -429,7 +426,6 @@
                 });
 
             $('.controls')
-            // TODO: make smooth scrolling and zooming
                 .on('click', '.zoom-in', function () {
                     $pluginContainer = $(this).closest('.stages-scale');
                     $timeLine = $pluginContainer.find('.time-line');
@@ -472,6 +468,7 @@
     };
 
     var methods = {
+        // TODO: multiple instances
         init: function(events, options) {
             console.log('plugin started');
             console.log('args: ', arguments);
@@ -480,108 +477,128 @@
 
             if ((typeof this === 'object') && this.jquery) {
                 // Вызываем плагин как метод jQuery-элемента:
-
-                console.log('plugin seed: ', seed, settings, arguments[0]);
-                if ((arguments[0] === Object(arguments[0])) && !Array.isArray(arguments[0])) {
-                    settings = $.extend(defaults, arguments[0]);
-                } else {
-                    settings = defaults;
-                }
                 seed += 1;
                 this
                     .addClass('stages-scale')
                     .attr('id', 'stages-scale-' + seed);
-                $pluginContainer = $('#stages-scale-' + seed);
+                $pluginContainer = this;
 
-                // Сортируем коллекцию событий по датам, получаем массив событий
-                helpers.sortEventNodes($pluginContainer);
-                eventsList = helpers.getEventsListFromContainer($pluginContainer);
-                firstEventDate = eventsList[0].date;
-                lastEventDate = eventsList[eventsList.length - 1].date;
-                totalDuration = lastEventDate - firstEventDate;
+                if ((arguments.length === 1) || (arguments.length === 0)) {
+                    if (((arguments[0] === Object(arguments[0])) && !Array.isArray(arguments[0])) || (arguments.length === 0)) {
+                        settings = arguments[0] ? $.extend(defaults, arguments[0]) : defaults;
+                        console.log('plugin seed: ', seed, settings, arguments);
 
-                console.log(eventsList);
+                        // Сортируем коллекцию событий по датам, получаем массив событий
+                        helpers.sortEventNodes($pluginContainer);
+                        eventsList = helpers.getEventsListFromContainer($pluginContainer);
+                        firstEventDate = eventsList[0].date;
+                        lastEventDate = eventsList[eventsList.length - 1].date;
+                        totalDuration = lastEventDate - firstEventDate;
 
-                // Инициализируем DOM-элементы
-                $pluginContainer
-                    .children()
-                    .wrapAll('<div class="time-line"><div class="events"></div></div>');
-                $timeLine = $pluginContainer
-                    .find('.time-line')
-                    .addClass('zoom-1');
-                $events = $timeLine.find('.events');
-                $pluginContainer
-                    .prepend($('<div class="controls">' +
-                        '<span class="control scroll-left"> < </span><span class="control scroll-right"> > </span>' +
-                        '<span class="control zoom-in"> + </span><span class="control zoom-out"> - </span>' +
-                        '</div>'))
-                    .append($('<div class="legend"></div>'));
-                $controls = $pluginContainer.find('.controls');
+                        console.log(eventsList);
+
+                        // Инициализируем DOM-элементы
+                        $pluginContainer
+                            .children()
+                            .wrapAll('<div class="time-line"><div class="events"></div></div>');
+                        $timeLine = $pluginContainer
+                            .find('.time-line')
+                            .addClass('zoom-1');
+                        $events = $timeLine.find('.events');
+                        $pluginContainer
+                            .prepend($('<div class="controls">' +
+                                '<span class="control scroll-left"> < </span><span class="control scroll-right"> > </span>' +
+                                '<span class="control zoom-in"> + </span><span class="control zoom-out"> - </span>' +
+                                '</div>'))
+                            .append($('<div class="legend"></div>'));
+                        $controls = $pluginContainer.find('.controls');
+
+                    } else if (Array.isArray(arguments[0])) {
+                        settings = defaults;
+                        console.log('plugin seed: ', seed, settings, arguments);
+
+                        eventsList = arguments[0].sort(function(itemA,itemB) {
+                            return (new Date(itemA.date)).getTime() - (new Date(itemB.date)).getTime();
+                        });
+
+                        firstEventDate = eventsList[0].date;
+                        lastEventDate = eventsList[eventsList.length - 1].date;
+                        totalDuration = lastEventDate - firstEventDate;
+
+                        console.log(eventsList);
+
+                        var html = '';
+                        for (var i = 0; i < eventsList.length; i++) {
+                            html += '<div data-date="' + eventsList[i].date + '" data-type="' + eventsList[i].type +
+                                '" data-icon="' + eventsList[i].icon + '" data-title="' + eventsList[i].title +
+                                '" data-text="' + eventsList[i].text + '" class="events-item">' + eventsList[i].text +
+                                '</div> ';
+                        }
+
+                        $pluginContainer.html('<div class="stages-scale" id="stage-scale-' + seed + '"><div class="time-line">' +
+                            '<div class="events">' + html + '</div></div><div class="legend"></div></div>');
+                        console.log($pluginContainer);
+
+                        // Инициализируем DOM-элементы
+                        $timeLine = $pluginContainer
+                            .find('.time-line')
+                            .addClass('zoom-1');
+                        $events = $timeLine.find('.events');
+                        $pluginContainer
+                            .prepend($controls)
+                            .append($('<div class="legend"></div>'));
+                        $controls = $pluginContainer.find('.controls');
+
+                    }
+                } else if (arguments.length === 2) {
+                    if ((arguments[1] === Object(arguments[1])) && !Array.isArray(arguments[1])) {
+                        settings = $.extend(defaults, arguments[1]);
+                    } else {
+                        settings = defaults;
+                    }
+                    console.log('plugin seed: ', seed, settings, arguments);
+
+                    if (Array.isArray(arguments[0])) {
+                        eventsList = arguments[0].sort(function(itemA,itemB) {
+                            return (new Date(itemA.date)).getTime() - (new Date(itemB.date)).getTime();
+                        });
+
+                        firstEventDate = eventsList[0].date;
+                        lastEventDate = eventsList[eventsList.length - 1].date;
+                        totalDuration = lastEventDate - firstEventDate;
+
+                        console.log(eventsList);
+
+                        var html = '';
+                        for (var i = 0; i < eventsList.length; i++) {
+                            html += '<div data-date="' + eventsList[i].date + '" data-type="' + eventsList[i].type +
+                                '" data-icon="' + eventsList[i].icon + '" data-title="' + eventsList[i].title +
+                                '" data-text="' + eventsList[i].text + '" class="events-item">' + eventsList[i].text +
+                                '</div> ';
+                        }
+
+                        $pluginContainer.html('<div class="time-line">' + '<div class="events">' + html + '</div>' +
+                            '</div><div class="legend"></div>');
+                        console.log($pluginContainer);
+
+                        // Инициализируем DOM-элементы
+                        $timeLine = $pluginContainer
+                            .find('.time-line')
+                            .addClass('zoom-1');
+                        $events = $timeLine.find('.events');
+                        $pluginContainer
+                            .prepend($controls);
+                        $controls = $pluginContainer.find('.controls');
+                    }
+                }
+
+                $pluginContainer.find('.legend').css('height', settings.legendHeight)
 
                 helpers.redraw();
                 helpers.drawRuler();
 
-                // helpers.groupEvents(1);
-
                 helpers.bind();
-
                 helpers.zoom('-');
-
-                console.log($controls);
-
-            } else if (typeof this === 'function') {
-                // Вызываем плагин как глобальный метод jQuery:
-                // проверяем, что на входе есть массив с данными
-                if (Array.isArray(arguments[0])) {
-                    seed += 1;
-                    if ((arguments[1] === Object(arguments[1])) && !Array.isArray(arguments[1])) {
-                        settings = $.extend(defaults, arguments[1]);
-                        console.log('plugin seed: ', seed, settings, arguments[1]);
-                    }
-                    // Сортируем массив событий по датам
-                    eventsList = arguments[0].sort(function(itemA,itemB) {
-                        return (new Date(itemA.date)).getTime() - (new Date(itemB.date)).getTime();
-                    });
-
-                    firstEventDate = eventsList[0].date;
-                    lastEventDate = eventsList[eventsList.length - 1].date;
-                    totalDuration = lastEventDate - firstEventDate;
-
-                    console.log(eventsList);
-
-                    var html = '';
-                    for (var i = 0; i < eventsList.length; i++) {
-                        html += '<div data-date="' + eventsList[i].date + '" data-type="' + eventsList[i].type +
-                            '" data-icon="' + eventsList[i].icon + '" data-title="' + eventsList[i].title +
-                            '" data-text="' + eventsList[i].text + '" class="events-item">' + eventsList[i].text +
-                            '</div> ';
-                    }
-
-                    $pluginContainer = $('<div class="stages-scale" id="stage-scale-' + seed + '"><div class="time-line">' +
-                        '<div class="events">' + html + '</div></div></div>');
-                    console.log($pluginContainer);
-
-                    // Инициализируем DOM-элементы
-                    $timeLine = $pluginContainer
-                        .find('.time-line')
-                        .addClass('zoom-1');
-                    $events = $timeLine.find('.events');
-                    $pluginContainer
-                        .prepend($controls)
-                        .append($('<div class="legend"></div>'));
-                    $controls = $pluginContainer.find('.controls');
-
-                    helpers.redraw();
-                    helpers.drawRuler();
-
-                    // helpers.groupEvents(1);
-
-                    helpers.bind();
-
-                    console.log($controls);
-
-                    return $pluginContainer;
-                }
             }
 
         }
