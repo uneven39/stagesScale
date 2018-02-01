@@ -68,7 +68,7 @@ $event-icon-file-color-outer: #8a86f6;
   display: none;
 }
 
-.stages-scale {
+.time-line-plugin {
 
   position: relative;
   clear: both;
@@ -102,6 +102,7 @@ $event-icon-file-color-outer: #8a86f6;
     overflow-x: auto;
     overflow-y: hidden;
     box-sizing: border-box;
+    margin-bottom: 30px;
 
     .events {
       overflow: visible !important;

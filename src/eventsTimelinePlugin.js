@@ -66,46 +66,91 @@
         this.element = element;
         this.args = arguments;
 
+        console.log(this.args);
+
         this._$pluginContainer = $(element);
 
-        this._$events;
-        this._$ruler;
-        this._$controls;
-
-        this._firstEventDate;
-        this._lastEventDate;
         this._totalDuration = 0;
-        this._zoomLevel = 1;
 
-        // jQuery has an extend method which merges the contents of two or
-        // more objects, storing the result in the first object. The first object
-        // is generally empty as we don't want to alter the default options for
-        // future instances of the plugin
-        this.settings = $.extend( {}, defaults, options );
-        this._defaults = defaults;
+        this.timeShift = timeShift;
+        this.settings = defaults;
         this._name = pluginName;
 
-        this.init(self);
+        this.init();
     }
 
-    // Avoid Plugin.prototype conflicts
     $.extend( Plugin.prototype, {
-        init: function(self) {
+        init: function() {
+            var eventsList = [],
+                eventsHtml;
             seed += 1;
-            this.helpers.plugin = self;
+
+            if (this.args[1] && this.args[2]) {
+                // data & options:
+                if ( Array.isArray(this.args[1]) && (this.args[2] === Object(this.args[2])) ) {
+                    // correct types
+                    console.log('right way');
+                    this.settings = $.extend( {}, this.settings, this.args[2] );
+                    // sort data array by date
+                    eventsList = this.args[1].sort(function(itemA, itemB) {
+                        var dateA = new Date(itemA.date),
+                            dateB = new Date(itemB.date);
+                        return (dateA.getTime() - dateB.getTime());
+                    });
+
+                    console.log('sorted data array: ', eventsList);
+
+                    eventsHtml = '';
+                    for (var i = 0; i < eventsList.length; i++) {
+
+                        eventsHtml += '<div data-date="' + eventsList[i].date + '" data-type="' + eventsList[i].type +
+                            '" data-icon="' + eventsList[i].icon + '" data-title="' + eventsList[i].title +
+                            '" data-text="' + eventsList[i].text + '" class="events-item">' + eventsList[i].text +
+                            '</div> ';
+                    }
+                    this._$pluginContainer.html(eventsHtml);
+
+                } else {
+                    // invalid types
+                    return;
+                }
+            } else if ((this.args[1] === Object(this.args[1])) && !Array.isArray(this.args[1])) {
+                // options only
+                console.log('options only');
+                this.settings = $.extend( {}, this.settings, this.args[1] );
+            } else if (Array.isArray(this.args[1])) {
+                // data array only
+                eventsList = this.args[1].sort(function(itemA,itemB) {
+                    var dateA = new Date(itemA.date),
+                        dateB = new Date(itemB.date);
+                    return (dateA.getTime() - dateB.getTime());
+                });
+                eventsHtml = '';
+                for (var k = 0; k < eventsList.length; k++) {
+                    eventsHtml += '<div data-date="' + eventsList[k].date + '" data-type="' + eventsList[k].type +
+                        '" data-icon="' + eventsList[k].icon + '" data-title="' + eventsList[k].title +
+                        '" data-text="' + eventsList[k].text + '" class="events-item">' + eventsList[k].text +
+                        '</div> ';
+                }
+                this._$pluginContainer.html(eventsHtml);
+            }
 
             // Сортируем коллекцию событий по датам, получаем массив событий
-            this.helpers.sortEventNodes(this._$pluginContainer);
-            var eventsList = this.helpers.getEventsListFromContainer(this._$pluginContainer);
+            if (!eventsList.length) {
+                this.sortEventNodes(this._$pluginContainer);
+                eventsList = this.getEventsListFromContainer(this._$pluginContainer);
+            }
             console.log(eventsList);
             this._firstEventDate = eventsList[0].date;
             this._lastEventDate = eventsList[eventsList.length - 1].date;
             this._totalDuration = this._lastEventDate - this._firstEventDate;
+            this._zoomLevel = 1;
 
-            console.log(eventsList);
+            console.log(this);
 
             this._$pluginContainer
-                .addClass('stages-scale')
+                .addClass('time-line-plugin')
+                .attr('id', 'time-line-plugin-' + seed)
                 .children()
                 .wrapAll('<div class="time-line"><div class="events"></div></div>');
 
@@ -122,27 +167,16 @@
             this._$ruler = this._$timeLine.find('.ruler');
             this._$controls = this._$pluginContainer.find('.controls');
 
-            // Place initialization logic here
-            // You already have access to the DOM element and
-            // the options via the instance, e.g. this.element
-            // and this.settings
-            // you can add more functions like the one below and
-            // call them like the example bellow
-            this.testPrint( seed, this.args );
-
             this._$pluginContainer.find('.legend').css('height', this.settings.legendHeight);
 
-            this.helpers.redraw();
-            this.helpers.drawRuler();
+            this.redraw();
+            this.drawRuler();
 
-            this.helpers.bind();
-            this.helpers.zoom('-');
+            this.bind();
+            this.zoom('-', this._$timeLine);
 
 
         },
-        helpers: {
-            plugin: this,
-
             sortEventNodes: function($container) {
                 var $sortedData = $container.find('[data-type][data-date]').sort(function (itemA, itemB) {
                     var dateA = new Date($(itemA).data('date')).getTime(),
@@ -160,11 +194,9 @@
                 console.log($container);
 
                 $container.find('[data-type][data-date]').each(function(index, item) {
-                    var event = {},
-                        utcDate = new Date($(item).data('date')).getTime();
-                    // console.log((new Date($(item).data('date'))).getHours());
+                    var event = {};
 
-                    event.date = utcDate + timeShift;
+                    event.date = $(item).data('date');
                     event.type = $(item).data('type');
                     event.icon = $(item).data('icon');
                     event.title = $(item).data('title');
@@ -177,23 +209,23 @@
             },
 
             drawRuler: function() {
-                var $ruler = this.plugin._$ruler;
-                for (var i = this.plugin.settings.start; i < this.plugin.settings.finish; i++) {
+                var $ruler = this._$ruler;
+                for (var i = this.settings.start; i < this.settings.finish; i++) {
                     var $rulerUnit = $('<div class="unit-hh" data-value="' + ruler24Labels[i] + '">' +
                         '<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>' +
                         '</div>');
-                    if (i === this.plugin.settings.start) {
+                    if (i === this.settings.start) {
                         var label = ('0' + i).slice(-2) + ':00';
                         $rulerUnit.attr('data-start-hour', '' + label);
                     }
-                    $rulerUnit.css('width', 100 / (this.plugin.settings.finish - this.plugin.settings.start) + '%');
+                    $rulerUnit.css('width', 100 / (this.settings.finish - this.settings.start) + '%');
                     $ruler.append($rulerUnit);
                 }
-                this.plugin._$timeLine.append($ruler);
+                this._$timeLine.append($ruler);
             },
 
             groupEvents: function(period){
-                var plugin = this.plugin,
+                var plugin = this,
                     $ruler = plugin._$ruler,
                     settings = plugin.settings;
 
@@ -244,7 +276,7 @@
                                     });
                                     if ($groupBy20m.length > 1) {
                                         var offsetAdd20m = (m20 + 1 - 10) * step / 60,
-                                            offset20m = ((step * (h - this.settings.start) + offsetAdd20m) / $ruler.width()) * 100;
+                                            offset20m = ((step * (h - settings.start) + offsetAdd20m) / $ruler.width()) * 100;
                                         $wrapper
                                             .addClass('20min')
                                             .css('left', offset20m + '%')
@@ -262,7 +294,7 @@
                                     });
                                     if ($groupBy15m.length > 1) {
                                         var offsetAdd15m = (m15 + 1 - 7.5) * step / 60,
-                                            offset15m = ((step * (h - this.settings.start) + offsetAdd15m) / $ruler.width()) * 100;
+                                            offset15m = ((step * (h - settings.start) + offsetAdd15m) / $ruler.width()) * 100;
                                         $wrapper
                                             .addClass('15min')
                                             .css('left', offset15m + '%')
@@ -280,7 +312,7 @@
                                     });
                                     if ($groupBy10m.length > 1) {
                                         var offsetAdd10m = (m10 + 1 - 5) * step / 60,
-                                            offset10m = ((step * (h - this.settings.start) + offsetAdd10m) / $ruler.width()) * 100;
+                                            offset10m = ((step * (h - settings.start) + offsetAdd10m) / $ruler.width()) * 100;
                                         $wrapper
                                             .addClass('10min')
                                             .css('left', offset10m + '%')
@@ -299,7 +331,7 @@
                                     });
                                     if ($groupBy5m.length > 1) {
                                         var offsetAdd5m = (m5 + 1 - 2.5) * step / 60,
-                                            offset5m = ((step * (h - this.settings.start) + offsetAdd5m) / $ruler.width()) * 100;
+                                            offset5m = ((step * (h - settings.start) + offsetAdd5m) / $ruler.width()) * 100;
                                         $wrapper
                                             .addClass('5min')
                                             .css('left', offset5m + '%')
@@ -319,7 +351,7 @@
                                     });
                                     if ($groupBy1m.length > 1) {
                                         var offsetAdd1m = m * step / 60,
-                                            offset1m = ((step * (h - this.settings.start) + offsetAdd1m) / $ruler.width()) * 100;
+                                            offset1m = ((step * (h - settings.start) + offsetAdd1m) / $ruler.width()) * 100;
                                         $wrapper
                                             .addClass('1min')
                                             .css('left', offset1m + '%')
@@ -335,49 +367,64 @@
             },
 
             ungroupEvents: function() {
-                console.log('ungroup');
-                this.plugin._$events.find('.group-by').each(function(index, group) {
+                this._$events.find('.group-by').each(function(index, group) {
                     $(group).children().unwrap('.group-by');
                 })
             },
 
             redraw: function () {
-                var startEvents = new Date(this.plugin._firstEventDate),
-                    finishEvents = new Date(this.plugin._lastEventDate),
-                    dayDate = new Date(startEvents.getTime() - this.plugin.timeShift),
-                    startDate = new Date(startEvents.getTime() - this.plugin.timeShift),
-                    finishDate = new Date(finishEvents.getTime() - this.plugin.timeShift);
+                var plugin = this,
+                    startEvents = new Date(this._firstEventDate),
+                    finishEvents = new Date(this._lastEventDate),
 
-                console.log(this);
+                    startHour = startEvents.getHours(),
+                    finishHour = finishEvents.getHours() === 23 ? 24 : finishEvents.getHours() + 1,
 
-                if (this.plugin.settings.start === 'auto') {
-                    this.plugin.settings.start = startDate.getHours();
-                } else {
-                    startDate.setHours(this.plugin.settings.start, 0, 0, 0);
+                    minDateLimit = new Date(this._firstEventDate),
+                    maxDateLimit = new Date(this._firstEventDate);
+
+
+                console.log('==============================');
+                console.log('Draw events');
+                console.log('==============================');
+
+                console.log('first event date: ', startEvents);
+                console.log('last event date: ', finishEvents);
+
+                console.log('first event hour: ', startHour);
+                console.log('last event last: ', finishHour);
+
+
+                if (this.settings.start === 'auto') {
+                    this.settings.start = startHour;
+                }
+                if (this.settings.finish === 'auto') {
+                    this.settings.finish = finishHour;
                 }
 
-                if (this.plugin.settings.finish === 'auto') {
-                    this.plugin.settings.finish = finishDate.getHours() === 23 ? 24 : finishDate.getHours() + 1;
-                } else {
-                    finishDate.setHours(this.plugin.settings.finish, 0, 0, 0);
-                }
+                console.log('settings hour limits: ', this.settings.start, this.settings.finish);
 
-                console.log('limit events: ', startEvents, finishEvents, dayDate);
-                console.log('start: ', dayDate.getDate(), startDate.getTime());
-                console.log('finish: ', finishDate.getHours(), finishDate.getTime());
+                minDateLimit.setHours(this.settings.start, 0, 0, 0);
+                maxDateLimit.setHours(this.settings.finish, 0, 0, 0);
 
-                this.plugin._totalDuration = finishDate.getTime() - startDate.getTime();
+                console.log('min date limit: ', minDateLimit);
+                console.log('max date limit: ', maxDateLimit);
 
-                console.log('durations: ', this.plugin._totalDuration, this.plugin.dayLength);
+                // this._totalDuration = maxDateLimit.getTime() - minDateLimit.getTime();
+                this._totalDuration = finishEvents.getTime() - startEvents.getTime();
 
-                this.plugin._$events.children().each(function(index, item) {
+                console.log('total events duration: ', this._totalDuration);
+
+                this._$events.children().each(function(index, item) {
                     var $item = $(item),
                         date = new Date($item.data('date')).getTime(),
-                        isInRange = (date >= startDate.getTime()) && (date <= finishDate.getTime()),
+                        isInRange = (date >= minDateLimit.getTime()) && (date <= maxDateLimit.getTime()),
+                        rangeLength = maxDateLimit.getTime() - minDateLimit.getTime(),
                         position;
 
                     if (isInRange) {
-                        position = ((this._totalDuration - (finishDate.getTime() - date)) / this._totalDuration)*100 + '%';
+                        position = ((rangeLength - (maxDateLimit.getTime() - date)) / rangeLength)*100 + '%';
+                        // console.log('item position: ', $(item).data('date'), position);
                         $item
                             .attr('data-text', $item.text())
                             .text('')
@@ -388,6 +435,8 @@
                         $item.addClass('hidden');
                     }
                 });
+
+                console.log('==============================');
             },
 
             redrawLegend: function() {
@@ -396,7 +445,7 @@
                     listHeight = 0,
                     start = 0,
                     cols = 0,
-                    $legend = this.plugin._$pluginContainer.find('.legend'),
+                    $legend = this._$pluginContainer.find('.legend'),
                     $events = $legend.children();
 
                 $events.each(function (index, event) {
@@ -424,51 +473,46 @@
                     $events.slice(start, $events.length).wrapAll('<div class="col-3"></div>');
             },
 
-            zoom: function(zoomType) {
-                var newZoomLevel,
-                    curZoomLevel = this.plugin._zoomLevel,
+            zoom: function(zoomType, $timeLineEl) {
+                var $timeLine = $timeLineEl,
+                    newZoomLevel,
+                    curZoomLevel = this._zoomLevel,
                     curScroll;
 
                 switch (zoomType) {
                     case '+':
-                        newZoomLevel = this.plugin._zoomLevel === 10 ? this.plugin._zoomLevel : this.plugin._zoomLevel + 1;
+                        newZoomLevel = this._zoomLevel === 10 ? this._zoomLevel : this._zoomLevel + 1;
                         break;
                     case '-':
-                        newZoomLevel = this.plugin._zoomLevel === 1 ? 1 : this.plugin._zoomLevel - 1;
+                        newZoomLevel = this._zoomLevel === 1 ? 1 : this._zoomLevel - 1;
                         break;
                     default:
-                        newZoomLevel = this.plugin._zoomLevel;
+                        newZoomLevel = this._zoomLevel;
                         break;
                 }
 
                 this.ungroupEvents();
                 this.groupEvents(newZoomLevel);
 
-                this.plugin._zoomLevel = newZoomLevel;
+                this._zoomLevel = newZoomLevel;
 
-                console.log('zoom levels: ', curZoomLevel, newZoomLevel);
+                curScroll = $timeLine.scrollLeft();
 
-                curScroll = this.plugin._$timeLine.scrollLeft();
-
-                console.log('start zoom');
-
-                this.plugin._$timeLine
+                $timeLine
                     .trigger('zoom')
-                    .animate({scrollLeft: (curScroll + this.plugin._$timeLine.width() / 2)*newZoomLevel/curZoomLevel - this.plugin._$timeLine.width()/2}, 300);
-                this.plugin._$ruler.animate({width: 100 * newZoomLevel + '%'}, 300);
-                this.plugin._$events.animate({width: 100 * newZoomLevel + '%'}, 300);
-
-                console.log('end zoom');
+                    .animate({scrollLeft: (curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2}, 300);
+                $timeLine.find('.ruler').animate({width: 100 * newZoomLevel + '%'}, 300);
+                $timeLine.find('.events').animate({width: 100 * newZoomLevel + '%'}, 300);
             },
 
             bind: function() {
-                console.log(this.plugin._$pluginContainer);
-                var helpers = this,
-                    $pluginContainer = this.plugin._$pluginContainer,
-                    $timeLine = this.plugin._$timeLine,
-                    $controls = this.plugin._$controls,
-                    $events = this.plugin._$events,
-                    $ruler = this.plugin._$ruler;
+                console.log(this._$pluginContainer);
+                var plugin = this,
+                    $pluginContainer = this._$pluginContainer,
+                    $timeLine = this._$timeLine,
+                    $controls = this._$controls,
+                    $events = this._$events,
+                    $ruler = this._$ruler;
 
                 $timeLine
                     .on('scroll zoom', function() {
@@ -476,10 +520,6 @@
                             rightLimit = $timeLine.offset().left + $timeLine.width() + (+$timeLine.css('padding-right').slice(0, -2) * 2),
                             $legend = $pluginContainer.find('.legend'),
                             $legendContent = $('<div></div>');
-
-                        // console.log('time-line scrolling');
-                        // console.log($timeLine.css('padding-right').slice(0, -2));
-                        // console.log('==========================');
 
                         $events.children().each(function(index, el) {
                             var leftBorder = $(el).offset().left;
@@ -490,7 +530,6 @@
                                 if ($(el).hasClass('group-by')) {
                                     // group:
                                     $(el).children().each(function(index, item) {
-                                        // console.log('event ' + item.dataset.title + ' in viewport');
                                         var $eventData = $('<div class="legend-item"></div>'),
                                             date = new Date($(item).data('date')),
                                             dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
@@ -505,7 +544,6 @@
                                     });
                                 } else if ($(el).hasClass('events-item')) {
                                     // single:
-                                    // console.log('event ' + el.dataset.title + ' in viewport');
                                     var $eventData = $('<div class="legend-item"></div>'),
                                         date = new Date($(el).data('date')),
                                         dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
@@ -523,61 +561,31 @@
                         });
 
                         $legend.html($legendContent.html());
-                        helpers.redrawLegend();
-                        // console.log('==========================');
+                        plugin.redrawLegend();
                     });
 
                 $controls
                     .on('click', '.zoom-in', function () {
-                        // $pluginContainer = $(this).closest('.stages-scale');
-                        // $timeLine = $pluginContainer.find('.time-line');
-                        // $events = $pluginContainer.find('.events');
-                        // $ruler = $pluginContainer.find('.ruler');
-
-                        helpers.zoom('+');
+                        plugin.zoom('+', plugin._$timeLine);
                         console.log('zoom in plugin: ', $pluginContainer);
                     })
                     .on('click', '.zoom-out', function () {
-                        // $pluginContainer = $(this).closest('.stages-scale');
-                        // $timeLine = $pluginContainer.find('.time-line');
-                        // $events = $pluginContainer.find('.events');
-                        // $ruler = $pluginContainer.find('.ruler');
-
                         console.log('zoom out plugin: ', $pluginContainer);
-                        helpers.zoom('-');
+                        plugin.zoom('-', plugin._$timeLine);
                     })
                     .on('click', '.scroll-right', function () {
-                        // $pluginContainer = $(this).closest('.stages-scale');
-                        // $timeLine = $pluginContainer.find('.time-line');
-                        // $events = $pluginContainer.find('.events');
-                        // $ruler = $pluginContainer.find('.ruler');
-
                         var step = $ruler.width() / 24,
                             curScroll = $timeLine.scrollLeft();
                         $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step + step}, 300);
                     })
                     .on('click', '.scroll-left', function () {
-                        // $pluginContainer = $(this).closest('.stages-scale');
-                        // $timeLine = $pluginContainer.find('.time-line');
-                        // $events = $pluginContainer.find('.events');
-                        // $ruler = $pluginContainer.find('.ruler');
-
                         var step = $ruler.width() / 24,
                             curScroll = $timeLine.scrollLeft();
                         $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step - step}, 300);
                     })
-            }
-        },
-        testPrint: function(text, args ) {
-            // some logic
-            console.log(this);
-            console.log(this.element);
-            console.log(args);
         }
     } );
 
-    // A really lightweight plugin wrapper around the constructor,
-    // preventing against multiple instantiations
     $.fn[ pluginName ] = function( dataArray, options ) {
         return this.each( function() {
             if ( !$.data( this, "plugin_" + pluginName ) ) {
