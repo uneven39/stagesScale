@@ -137,8 +137,8 @@
 
             this._$pluginContainer
                 .prepend('<div class="controls">' +
-                    '<span class="control scroll-left"> < </span><span class="control scroll-right"> > </span>' +
-                    '<span class="control zoom-in"> + </span><span class="control zoom-out"> - </span>' +
+                    '<button type="button" class="control scroll-left"> < </button><button type="button" class="control scroll-right"> > </button>' +
+                    '<button type="button" class="control zoom-in"> + </button><button type="button" class="control zoom-out"> - </button>' +
                     '</div>')
                 .append('<div class="legend"></div>');
 
@@ -213,11 +213,11 @@
 
                 for (var h = plugin.settings.start; h < plugin.settings.finish; h++) {
                     var $group = plugin._$events
-                        .children(':not(.hidden)')
-                        .filter(function(index, event) {
-                            var date = new Date($(event).data('date'));
-                            return (date.getHours() === h);
-                        });
+                            .children(':not(.hidden)')
+                            .filter(function(index, event) {
+                                var date = new Date($(event).data('date'));
+                                return (date.getHours() === h);
+                            });
 
                     if ($group.length > 1) {
                         var step = $ruler.width() / (settings.finish - settings.start),
@@ -286,7 +286,7 @@
                                 }
                                 break;
                             case 5:
-                                for (var m10 = 9; m10 <= 59; m10 = m10 + 10) {
+                                /*for (var m10 = 9; m10 <= 59; m10 = m10 + 10) {
                                     var $groupBy10m = $group.filter(function(index, event) {
                                         var date = new Date($(event).data('date')),
                                             mins = date.getMinutes();
@@ -300,6 +300,23 @@
                                             .css('left', offset10m + '%')
                                             .attr('data-count', $groupBy10m.length);
                                         $groupBy10m.wrapAll($wrapper);
+                                    }
+                                }*/
+                                var range = 10,
+                                    firstEventIdx = 0,
+                                    lastEventIdx = 0;
+
+                                for (var i = 0; i < $group.length; i++) {
+                                    var $item = $($group[i]),
+                                        curEventDate = new Date($item.data('date')),
+                                        firstEventDate = new Date($($group[firstEventIdx]).data('date'));
+                                    if (curEventDate.getMinutes() > firstEventDate.getMinutes() + range) {
+                                        var offset =
+                                        $wrapper
+                                            .addClass('10min')
+                                            .attr('data-count', i - firstEventIdx);
+                                        $group.slice(firstEventIdx, i).wrapAll($wrapper);
+                                        firstEventIdx = i;
                                     }
                                 }
                                 break;
@@ -355,8 +372,7 @@
             },
 
             redraw: function () {
-                var plugin = this,
-                    startEvents = new Date(this._firstEventDate),
+                var startEvents = new Date(this._firstEventDate),
                     finishEvents = new Date(this._lastEventDate),
 
                     startHour = startEvents.getHours(),
@@ -467,6 +483,7 @@
                         newZoomLevel = this._zoomLevel === 10 ? this._zoomLevel : this._zoomLevel + 1;
                         break;
                     case '-':
+                        // Если уменьшаем масштаб, то сразу перегруппируем события
                         newZoomLevel = this._zoomLevel === 1 ? 1 : this._zoomLevel - 1;
                         this.ungroupEvents();
                         this.groupEvents(newZoomLevel);
@@ -480,18 +497,19 @@
 
                 curScroll = $timeLine.scrollLeft();
 
-                $timeLine
-                    .trigger('zoom')
-                    .animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2)}, 300);
+                $timeLine.animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2)}, 300);
                 $timeLine.find('.ruler').animate({width: 100 * newZoomLevel + '%'}, 300);
                 $timeLine.find('.events')
                     .animate({width: 100 * newZoomLevel + '%'},
                         {duration: 300,
                             done: function(){
+                                // Если увеличиваем масштаб, то перегруппируем события после анимации
                                 if (zoomType === '+') {
+                                    console.log('zooming in');
                                     plugin.ungroupEvents();
                                     plugin.groupEvents(newZoomLevel);
                                 }
+                                $timeLine.trigger('zoom');
                             }
                         });
             },
