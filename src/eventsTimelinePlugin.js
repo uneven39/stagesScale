@@ -232,112 +232,22 @@
                                 $group.wrapAll($wrapper);
                                 break;
                             case 2:
-                                for (var m30 = 29; m30 <= 59; m30 = m30 + 30) {
-                                    var $groupBy30m = $group.filter(function(index, event) {
-                                        var date = new Date($(event).data('date')),
-                                            mins = date.getMinutes();
-                                        return ((mins >= (m30 - 29)) && (mins <= m30));
-                                    });
-                                    if ($groupBy30m.length > 1) {
-                                        var offsetAdd30m = (m30 + 1 - 15) * step / 60,
-                                            offset30m = ((step * (h - settings.start) + offsetAdd30m) / $ruler.width()) * 100;
-                                        $wrapper
-                                            .addClass('30min')
-                                            .css('left', offset30m + '%')
-                                            .attr('data-count', $groupBy30m.length);
-                                        $groupBy30m.wrapAll($wrapper);
-                                    }
-                                }
+
+                                groupByRange(30, $group);
                                 break;
                             case 3:
-                                for (var m20 = 19; m20 <= 59; m20 = m20 + 20) {
-                                    var $groupBy20m = $group.filter(function(index, event) {
-                                        var date = new Date($(event).data('date')),
-                                            mins = date.getMinutes();
-                                        return ((mins >= (m20 - 19)) && (mins <= m20));
-                                    });
-                                    if ($groupBy20m.length > 1) {
-                                        var offsetAdd20m = (m20 + 1 - 10) * step / 60,
-                                            offset20m = ((step * (h - settings.start) + offsetAdd20m) / $ruler.width()) * 100;
-                                        $wrapper
-                                            .addClass('20min')
-                                            .css('left', offset20m + '%')
-                                            .attr('data-count', $groupBy20m.length);
-                                        $groupBy20m.wrapAll($wrapper);
-                                    }
-                                }
+
+                                groupByRange(20, $group);
                                 break;
                             case 4:
-                                for (var m15 = 14; m15 <= 59; m15 = m15 + 15) {
-                                    var $groupBy15m = $group.filter(function(index, event) {
-                                        var date = new Date($(event).data('date')),
-                                            mins = date.getMinutes();
-                                        return ((mins >= (m15 - 14)) && (mins <= m15));
-                                    });
-                                    if ($groupBy15m.length > 1) {
-                                        var offsetAdd15m = (m15 + 1 - 7.5) * step / 60,
-                                            offset15m = ((step * (h - settings.start) + offsetAdd15m) / $ruler.width()) * 100;
-                                        $wrapper
-                                            .addClass('15min')
-                                            .css('left', offset15m + '%')
-                                            .attr('data-count', $groupBy15m.length);
-                                        $groupBy15m.wrapAll($wrapper);
-                                    }
-                                }
+                                groupByRange(15, $group);
                                 break;
                             case 5:
-                                /*for (var m10 = 9; m10 <= 59; m10 = m10 + 10) {
-                                    var $groupBy10m = $group.filter(function(index, event) {
-                                        var date = new Date($(event).data('date')),
-                                            mins = date.getMinutes();
-                                        return ((mins >= (m10 - 9)) && (mins <= m10));
-                                    });
-                                    if ($groupBy10m.length > 1) {
-                                        var offsetAdd10m = (m10 + 1 - 5) * step / 60,
-                                            offset10m = ((step * (h - settings.start) + offsetAdd10m) / $ruler.width()) * 100;
-                                        $wrapper
-                                            .addClass('10min')
-                                            .css('left', offset10m + '%')
-                                            .attr('data-count', $groupBy10m.length);
-                                        $groupBy10m.wrapAll($wrapper);
-                                    }
-                                }*/
-                                var range = 10,
-                                    firstEventIdx = 0,
-                                    lastEventIdx = 0;
-
-                                for (var i = 0; i < $group.length; i++) {
-                                    var $item = $($group[i]),
-                                        curEventDate = new Date($item.data('date')),
-                                        firstEventDate = new Date($($group[firstEventIdx]).data('date'));
-                                    if (curEventDate.getMinutes() > firstEventDate.getMinutes() + range) {
-                                        var offset =
-                                        $wrapper
-                                            .addClass('10min')
-                                            .attr('data-count', i - firstEventIdx);
-                                        $group.slice(firstEventIdx, i).wrapAll($wrapper);
-                                        firstEventIdx = i;
-                                    }
-                                }
+                                groupByRange(10, $group);
                                 break;
                             case 6:
                             case 7:
-                                for (var m5 = 4; m5 <= 59; m5 = m5 + 5) {
-                                    var $groupBy5m = $group.filter(function(index, event) {
-                                        var date = new Date($(event).data('date')),
-                                            mins = date.getMinutes();
-                                        return ((mins >= (m5 - 4)) && (mins <= m5));
-                                    });
-                                    if ($groupBy5m.length > 1) {
-                                        var offsetAdd5m = (m5 + 1 - 2.5) * step / 60,
-                                            offset5m = ((step * (h - settings.start) + offsetAdd5m) / $ruler.width()) * 100;
-                                        $wrapper
-                                            .addClass('5min')
-                                            .css('left', offset5m + '%')
-                                            .attr('data-count', $groupBy5m.length);
-                                        $groupBy5m.wrapAll($wrapper);
-                                    }
-                                }
+                                groupByRange(5, $group);
                                 break;
                             case 8:
                             case 9:
@@ -363,6 +273,40 @@
                     }
                 }
 
+                function groupByRange(range, $group) {
+                    var firstEventIdx = 0,
+                        count = $group.length;
+
+                    for (var i = 0; i < count; i++) {
+                        var $item = $($group[i]),
+                            curEventDate = new Date($item.data('date')),
+                            firstEventDate = new Date($($group[firstEventIdx]).data('date'));
+
+                        if ((curEventDate.getMinutes() > firstEventDate.getMinutes() + range) || i === (count - 1)) {
+                            var leftOffsetFirst = $($group[firstEventIdx]).css('left'),
+                                leftOffsetLast = $($group[i-1]).css('left');
+
+                            leftOffsetFirst = +leftOffsetFirst.substring(0, leftOffsetFirst.length - 2);
+                            leftOffsetLast = +leftOffsetLast.substring(0, leftOffsetLast.length - 2);
+
+                            // Значение смещения иконки группы в процентах от общей длины шкалы
+                            offset = 100 * ((leftOffsetLast + leftOffsetFirst) / 2) / $ruler.width();
+
+                            $wrapper
+                                .addClass(range + 'min')
+                                .css('left', offset + '%');
+                            if ((i === (count - 1)) && (curEventDate.getMinutes() <= firstEventDate.getMinutes() + range)) {
+                                $wrapper.attr('data-count', count - firstEventIdx);
+                                $group.slice(firstEventIdx, i + 1).wrapAll($wrapper);
+                            } else if (i - firstEventIdx > 1) {
+                                $wrapper.attr('data-count', i - firstEventIdx);
+                                $group.slice(firstEventIdx, i).wrapAll($wrapper);
+                            }
+                            firstEventIdx = i;
+                        }
+                        console.log('firstEventIdx: ', firstEventIdx);
+                    }
+                }
             },
 
             ungroupEvents: function() {
