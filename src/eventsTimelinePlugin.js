@@ -1,27 +1,8 @@
-/*
- *  jquery-boilerplate - v4.0.0
- *  A jump-start for jQuery plugins development.
- *  http://jqueryboilerplate.com
- *
- *  Made by Zeno Rocha
- *  Under MIT License
- */
-// the semi-colon before function invocation is a safety net against concatenated
-// scripts and/or other plugins which may not be closed properly.
+
 ;( function( $, window, document, undefined ) {
 
     "use strict";
 
-    // undefined is used here as the undefined global variable in ECMAScript 3 is
-    // mutable (ie. it can be changed by someone else). undefined isn't really being
-    // passed in so we can ensure the value of it is truly undefined. In ES5, undefined
-    // can no longer be modified.
-
-    // window and document are passed through as local variable rather than global
-    // as this (slightly) quickens the resolution process and can be more efficiently
-    // minified (especially when both are regularly referenced in your plugin).
-
-    // Create the defaults once
     var pluginName = "eventsTimeLine",
         seed = 0,
         defaults = {
@@ -59,7 +40,7 @@
         dayLength = 86400000, // day duration in ms
         timeShift = (new Date).getTimezoneOffset() * 60 * 1000; // TimeZone offset in ms
 
-    // The actual plugin constructor
+    // plugin constructor
     function Plugin (element, dataArray, options) {
         var self = this;
 
@@ -476,6 +457,7 @@
 
             zoom: function(zoomType, $timeLineEl) {
                 var $timeLine = $timeLineEl,
+                    plugin = this,
                     newZoomLevel,
                     curZoomLevel = this._zoomLevel,
                     curScroll;
@@ -486,14 +468,13 @@
                         break;
                     case '-':
                         newZoomLevel = this._zoomLevel === 1 ? 1 : this._zoomLevel - 1;
+                        this.ungroupEvents();
+                        this.groupEvents(newZoomLevel);
                         break;
                     default:
                         newZoomLevel = this._zoomLevel;
                         break;
                 }
-
-                this.ungroupEvents();
-                this.groupEvents(newZoomLevel);
 
                 this._zoomLevel = newZoomLevel;
 
@@ -503,7 +484,16 @@
                     .trigger('zoom')
                     .animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2)}, 300);
                 $timeLine.find('.ruler').animate({width: 100 * newZoomLevel + '%'}, 300);
-                $timeLine.find('.events').animate({width: 100 * newZoomLevel + '%'}, 300);
+                $timeLine.find('.events')
+                    .animate({width: 100 * newZoomLevel + '%'},
+                        {duration: 300,
+                            done: function(){
+                                if (zoomType === '+') {
+                                    plugin.ungroupEvents();
+                                    plugin.groupEvents(newZoomLevel);
+                                }
+                            }
+                        });
             },
 
             bind: function() {
