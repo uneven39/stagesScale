@@ -232,23 +232,41 @@
                                 $group.wrapAll($wrapper);
                                 break;
                             case 2:
-
                                 groupByRange(30, $group);
+
+                                /*for (var m30 = 29; m30 <= 59; m30 = m30 + 30) {
+                                    var $groupBy30m = $group.filter(function(index, event) {
+                                        var date = new Date($(event).data('date')),
+                                            mins = date.getMinutes();
+                                        return ((mins >= (m30 - 29)) && (mins <= m30));
+                                    });
+                                    if ($groupBy30m.length > 1) {
+                                        var offsetAdd30m = (m30 + 1 - 15) * step / 60,
+                                            offset30m = ((step * (h - settings.start) + offsetAdd30m) / $ruler.width()) * 100;
+                                        $wrapper
+                                            .addClass('30min')
+                                            .css('left', offset30m + '%')
+                                            .attr('data-count', $groupBy30m.length);
+                                            $groupBy30m.wrapAll($wrapper);
+                                    }
+                                }*/
+
                                 break;
                             case 3:
-
-                                groupByRange(20, $group);
-                                break;
-                            case 4:
+                                // groupByRange(20, $group);
                                 groupByRange(15, $group);
                                 break;
-                            case 5:
-                                groupByRange(10, $group);
-                                break;
-                            case 6:
-                            case 7:
+                            case 4:
+                                // groupByRange(15, $group);
                                 groupByRange(5, $group);
                                 break;
+                            case 5:
+                                // groupByRange(10, $group);
+                                // break;
+                            case 6:
+                            case 7:
+                                // groupByRange(5, $group);
+                                // break;
                             case 8:
                             case 9:
                             case 10:

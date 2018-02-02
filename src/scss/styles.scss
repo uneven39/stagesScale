@@ -116,6 +116,10 @@ $event-icon-file-color-outer: #8a86f6;
         @include event-marker-base($event-marker-color-base, $event-marker-color-outer);
         z-index: 5;
 
+        &:hover {
+          z-index: 20;
+        }
+
         &.icon{
           &-file {
             @include event-marker-icon($event-icon-file-color-base, $event-icon-file-color-outer, "../icons/file.png", 60%)
@@ -141,6 +145,10 @@ $event-icon-file-color-outer: #8a86f6;
 
         .events-item {
           display: none;
+        }
+
+        &:hover {
+          z-index: 20;
         }
       }
     }
