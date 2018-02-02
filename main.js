@@ -51,6 +51,6 @@ var dataArray = [
 
 // $.stagesScale('another');
 
-$('.test1').eventsTimeLine({/*start: 'auto', finish: 'auto',*/ legendHeight: 500});
+// $('.test1').eventsTimeLine({/*start: 'auto', finish: 'auto',*/ legendHeight: 500});
 $('.test2').eventsTimeLine(dataArray, {start: 'auto', finish: 'auto', legendHeight: 'auto'});
 $('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200});

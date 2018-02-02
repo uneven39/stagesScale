@@ -224,6 +224,7 @@
                 this._$timeLine.append($ruler);
             },
 
+        // TODO: make grouping by nearest events in diapason of X min
             groupEvents: function(period){
                 var plugin = this,
                     $ruler = plugin._$ruler,
@@ -500,7 +501,7 @@
 
                 $timeLine
                     .trigger('zoom')
-                    .animate({scrollLeft: (curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2}, 300);
+                    .animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2)}, 300);
                 $timeLine.find('.ruler').animate({width: 100 * newZoomLevel + '%'}, 300);
                 $timeLine.find('.events').animate({width: 100 * newZoomLevel + '%'}, 300);
             },
@@ -514,6 +515,7 @@
                     $events = this._$events,
                     $ruler = this._$ruler;
 
+                // TODO: optimize rendering
                 $timeLine
                     .on('scroll zoom', function() {
                         var leftLimit = $timeLine.offset().left,

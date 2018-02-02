@@ -8,7 +8,10 @@
     <link href="/dist/styles.css" rel="stylesheet"></head>
 </head>
 <body>
-
+<h3>
+    Call "$('.test1').eventsTimeLine({legendHeight: 500})" by button:
+</h3>
+<button type="button" onclick="$('.test1').eventsTimeLine({/*start: 'auto', finish: 'auto',*/ legendHeight: 500}); $(this).attr('disabled', true);">Initiate plugin here</button>
 <div class="test1">
 
     <div data-date="2018/01/01 13:55:00" data-type="тип события 5" data-icon="file" data-title="Заголовок 25">html-текст события 25</div>
@@ -96,9 +99,15 @@
     <div data-date="2018/01/01 23:08:00" data-type="тип события 1" data-icon="type1" data-title="Заголовок 82">html-текст события 82</div>
     <div data-date="2018/01/01 23:59:00" data-type="тип события 1" data-icon="type1" data-title="Заголовок 83">html-текст события 83</div>
 </div>
+<h3>
+    Calling "$('.test2').eventsTimeLine(dataArray, {start: 'auto', finish: 'auto', legendHeight: 'auto'})":
+</h3>
 <div class="test2">
 </div>
 
+<h3>
+    Calling "$('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200})":
+</h3>
 <div class="test3">
 </div>
 
