@@ -212,79 +212,135 @@
                 settings = plugin.settings,
                 isZoomIn = zoomToLevel > zoomFromLevel;
 
-            switch (zoomToLevel) {
-                case 1:
-                    // group by 60 min
-                    this.ungroupEvents();
-                    for (var hour = plugin.settings.start; hour < plugin.settings.finish; hour++) {
-                        var $group = plugin._$events
+            if (isZoomIn) {
+                switch (zoomToLevel) {
+                    case 1:
+                        // group by 60 min
+                        this.ungroupEvents();
+                        for (var hour = plugin.settings.start; hour < plugin.settings.finish; hour++) {
+                            var $group = plugin._$events
                                 .children(':not(.hidden)')
                                 .filter(function (index, event) {
                                     var date = new Date($(event).data('date'));
                                     return (date.getHours() === hour);
                                 });
 
-                        if ($group.length > 1) {
-                            console.log('=========================');
-                            console.log('group on zoom ', zoomToLevel);
-                            console.log($group);
+                            if ($group.length > 1) {
+                                console.log('=========================');
+                                console.log('group on zoom ', zoomToLevel);
+                                console.log($group);
 
-                            var step = $ruler.width() / (settings.finish - settings.start),
-                                $wrapper = $('<div class="group-by hour"></div>'),
-                                offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
-                            $wrapper
-                                .css('left', offset + '%')
-                                .attr('data-count', $group.length);
-                            $group.wrapAll($wrapper);
+                                var step = $ruler.width() / (settings.finish - settings.start),
+                                    $wrapper = $('<div class="group-by hour"></div>'),
+                                    offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
+                                $wrapper
+                                    .css('left', offset + '%')
+                                    .attr('data-count', $group.length);
+                                $group.wrapAll($wrapper);
+                            }
                         }
+
+                        break;
+                    case 2:
+                        // group by 30 min
+                        var $groupsHour = plugin._$events.find('.group-by.hour');
+                        console.log($groupsHour);
+                        $groupsHour.each(function (index, group) {
+                            var $group = $(group).children();
+                            $group.unwrap('.group-by');
+                            groupByRange(30, $group);
+                        });
+
+                        break;
+                    case 3:
+                        // group by 15 min
+                        var $groups30min = plugin._$events.find('.group-by.30min');
+                        console.log($groups30min);
+                        $groups30min.each(function (index, group) {
+                            var $group = $(group).children();
+                            $group.unwrap('.group-by');
+                            groupByRange(15, $group);
+                        });
+                        break;
+                    case 4:
+                        // group by 5 min
+                        var $groups15min = plugin._$events.find('.group-by.15min');
+                        console.log($groups15min);
+                        $groups15min.each(function (index, group) {
+                            var $group = $(group).children();
+                            $group.unwrap('.group-by');
+                            groupByRange(5, $group);
+                        });
+                        break;
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
+                    case 10:
+                        // group by 1 min
+                        plugin._$events.find('.group-by').each(function (index, group) {
+                            var $group = $(group),
+                                $items = $group.children();
+                            $group.children().unwrap('.group-by');
+                            groupByRange(1, $items);
+                        });
+                        break;
+                }
+            } else {
+                this.ungroupEvents();
+                for (var hour = plugin.settings.start; hour < plugin.settings.finish; hour++) {
+                    var $group = plugin._$events
+                        .children(':not(.hidden)')
+                        .filter(function (index, event) {
+                            var date = new Date($(event).data('date'));
+                            return (date.getHours() === hour);
+                        });
+
+                    if ($group.length > 1) {
+                        /*console.log('=========================');
+                        console.log('group on zoom ', zoomToLevel);
+                        console.log($group);
+
+                        var step = $ruler.width() / (settings.finish - settings.start),
+                            $wrapper = $('<div class="group-by hour"></div>'),
+                            offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
+                        $wrapper
+                            .css('left', offset + '%')
+                            .attr('data-count', $group.length);
+                        $group.wrapAll($wrapper);*/
+
+                        switch (zoomToLevel) {
+                            case 1:
+                                var step = $ruler.width() / (settings.finish - settings.start),
+                                    $wrapper = $('<div class="group-by hour"></div>'),
+                                    offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
+                                $wrapper
+                                    .css('left', offset + '%')
+                                    .attr('data-count', $group.length);
+                                $group.wrapAll($wrapper);
+                                break;
+                            case 2:
+                                groupByRange(30, $group);
+                                break;
+                            case 3:
+                                groupByRange(15, $group);
+                                break;
+                            case 4:
+                                groupByRange(5, $group);
+                                break;
+                            case 5:
+                            case 6:
+                            case 7:
+                            case 8:
+                            case 9:
+                            case 10:
+                                groupByRange(1, $group);
+                                break;
+                        }
+
                     }
-
-                    break;
-                case 2:
-                    // group by 30 min
-                    var $groupsHour = plugin._$events.find('.group-by.hour');
-                    console.log($groupsHour);
-                    $groupsHour.each(function (index, group) {
-                        var $group = $(group).children();
-                        $group.unwrap('.group-by');
-                        groupByRange(30, $group);
-                    });
-
-                    break;
-                case 3:
-                    // group by 15 min
-                    var $groups30min = plugin._$events.find('.group-by.30min');
-                    console.log($groups30min);
-                    $groups30min.each(function (index, group) {
-                        var $group = $(group).children();
-                        $group.unwrap('.group-by');
-                        groupByRange(15, $group);
-                    });
-                    break;
-                case 4:
-                    // group by 5 min
-                    var $groups15min = plugin._$events.find('.group-by.15min');
-                    console.log($groups15min);
-                    $groups15min.each(function (index, group) {
-                        var $group = $(group).children();
-                        $group.unwrap('.group-by');
-                        groupByRange(5, $group);
-                    });
-                    break;
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                case 10:
-                    // group by 1 min
-                    plugin._$events.find('.group-by').each(function (index, group) {
-                        var $group = $(group),
-                            $items = $group.children();
-                        $group.children().unwrap('.group-by');
-                        groupByRange(1, $items);
-                    });
-                    break;
+                }
             }
 
 
@@ -321,12 +377,6 @@
                     console.log('firstEventIdx: ', firstEventIdx);
                 }
             }
-        },
-
-        regroupEvents: function($group) {
-            var $items = $group.children('.events-item');
-
-
         },
 
         ungroupEvents: function() {
