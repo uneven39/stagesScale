@@ -134,7 +134,6 @@
                 .attr('id', 'time-line-plugin-' + seed)
                 .children()
                 .wrapAll('<div class="time-line"><div class="events"></div></div>');
-
             this._$pluginContainer
                 .prepend('<div class="controls">' +
                     '<button type="button" class="control scroll-left"> < </button><button type="button" class="control scroll-right"> > </button>' +
@@ -147,15 +146,18 @@
             this._$events = this._$timeLine.find('.events');
             this._$ruler = this._$timeLine.find('.ruler');
             this._$controls = this._$pluginContainer.find('.controls');
+            this._$legend = this._$pluginContainer.find('.legend');
 
             this._$pluginContainer.find('.legend').css('height', this.settings.legendHeight);
 
             this.redraw();
             this.drawRuler();
+            this.initLegend();
 
             this.bind();
-            this.zoom('-', this._$timeLine);
-
+            this.zoom('-');
+            this.refreshEventsLegend();
+            this.redrawLegendCols();
 
         },
         sortEventNodes: function($container) {
@@ -205,7 +207,6 @@
             this._$timeLine.append($ruler);
         },
 
-        // TODO: make grouping by nearest events in diapason of X min
         groupEvents: function(zoomToLevel, zoomFromLevel){
             var plugin = this,
                 $ruler = plugin._$ruler,
@@ -273,11 +274,6 @@
                         });
                         break;
                     case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 9:
-                    case 10:
                         // group by 1 min
                         plugin._$events.find('.group-by').each(function (index, group) {
                             var $group = $(group),
@@ -298,18 +294,6 @@
                         });
 
                     if ($group.length > 1) {
-                        /*console.log('=========================');
-                        console.log('group on zoom ', zoomToLevel);
-                        console.log($group);
-
-                        var step = $ruler.width() / (settings.finish - settings.start),
-                            $wrapper = $('<div class="group-by hour"></div>'),
-                            offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
-                        $wrapper
-                            .css('left', offset + '%')
-                            .attr('data-count', $group.length);
-                        $group.wrapAll($wrapper);*/
-
                         switch (zoomToLevel) {
                             case 1:
                                 var step = $ruler.width() / (settings.finish - settings.start),
@@ -343,7 +327,6 @@
                 }
             }
 
-
             function groupByRange(range, $group) {
                 var firstEventIdx = 0,
                     count = $group.length;
@@ -374,7 +357,6 @@
                         }
                         firstEventIdx = i;
                     }
-                    console.log('firstEventIdx: ', firstEventIdx);
                 }
             }
         },
@@ -395,18 +377,6 @@
                 minDateLimit = new Date(this._firstEventDate),
                 maxDateLimit = new Date(this._firstEventDate);
 
-
-            console.log('==============================');
-            console.log('Draw events');
-            console.log('==============================');
-
-            console.log('first event date: ', startEvents);
-            console.log('last event date: ', finishEvents);
-
-            console.log('first event hour: ', startHour);
-            console.log('last event last: ', finishHour);
-
-
             if (this.settings.start === 'auto') {
                 this.settings.start = startHour;
             }
@@ -414,18 +384,10 @@
                 this.settings.finish = finishHour;
             }
 
-            console.log('settings hour limits: ', this.settings.start, this.settings.finish);
-
             minDateLimit.setHours(this.settings.start, 0, 0, 0);
             maxDateLimit.setHours(this.settings.finish, 0, 0, 0);
 
-            console.log('min date limit: ', minDateLimit);
-            console.log('max date limit: ', maxDateLimit);
-
-            // this._totalDuration = maxDateLimit.getTime() - minDateLimit.getTime();
             this._totalDuration = finishEvents.getTime() - startEvents.getTime();
-
-            console.log('total events duration: ', this._totalDuration);
 
             this._$events.children().each(function(index, item) {
                 var $item = $(item),
@@ -436,7 +398,6 @@
 
                 if (isInRange) {
                     position = ((rangeLength - (maxDateLimit.getTime() - date)) / rangeLength)*100 + '%';
-                    // console.log('item position: ', $(item).data('date'), position);
                     $item
                         .attr('data-text', $item.text())
                         .text('')
@@ -448,18 +409,24 @@
                 }
             });
 
-            console.log('==============================');
         },
 
-        redrawLegend: function() {
+        redrawLegendCols: function() {
             var totalHeight = 0,
                 listHeightLimit,
                 listHeight = 0,
                 start = 0,
+                end = 0,
                 cols = 0,
                 $legend = this._$pluginContainer.find('.legend'),
-                $events = $legend.children();
+                $events;
 
+            // Убираем группировку по колонкам
+            $legend.find('.col-3').each(function (index, col) {
+                $(col).children().unwrap('.col-3');
+            });
+
+            $events = $legend.children('.in-view');
             $events.each(function (index, event) {
                 totalHeight += $(event).height();
             });
@@ -468,14 +435,10 @@
 
             for (var i = 0; i < $events.length; i ++) {
                 listHeight += $($events[i]).height();
-                if (listHeight === listHeightLimit) {
-                    $events.slice(start, i + 1).wrapAll('<div class="col-3"></div>');
-                    start = i + 1;
-                    listHeight = 0;
-                    cols += 1;
-                } else if (listHeight > listHeightLimit) {
-                    $events.slice(start, i).wrapAll('<div class="col-3"></div>');
-                    start = i;
+                if (listHeight >= listHeightLimit) {
+                    end = (listHeight === listHeightLimit) ? (i + 1) : i;
+                    $events.slice(start, end).wrapAll('<div class="col-3"></div>');
+                    start = end;
                     listHeight = 0;
                     cols += 1;
                 }
@@ -485,8 +448,8 @@
                 $events.slice(start, $events.length).wrapAll('<div class="col-3"></div>');
         },
 
-        zoom: function(zoomType, $timeLineEl) {
-            var $timeLine = $timeLineEl,
+        zoom: function(zoomType) {
+            var $timeLine = this._$timeLine,
                 plugin = this,
                 newZoomLevel,
                 curZoomLevel = this._zoomLevel,
@@ -499,7 +462,6 @@
                 case '-':
                     // Если уменьшаем масштаб, то сразу перегруппируем события
                     newZoomLevel = this._zoomLevel === 1 ? 1 : this._zoomLevel - 1;
-                    // this.ungroupEvents();
                     this.groupEvents(newZoomLevel, curZoomLevel);
                     break;
                 default:
@@ -520,12 +482,67 @@
                             // Если увеличиваем масштаб, то перегруппируем события после анимации
                             if (zoomType === '+') {
                                 console.log('zooming in');
-                                // plugin.ungroupEvents();
                                 plugin.groupEvents(newZoomLevel, curZoomLevel);
                             }
                             $timeLine.trigger('zoom');
                         }
                     });
+        },
+
+        initLegend: function () {
+            var $legend = this._$pluginContainer.find('.legend'),
+                $legendContent = $('<div></div>');
+            this._$events.children().each(function(index, el) {
+                var $eventData = $('<div class="legend-item" data-date="' + $(el).data('date') + '"></div>'),
+                    date = new Date($(el).data('date')),
+                    dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
+                        ('0' + date.getSeconds()).slice(-2) + ' ' + ('0' + date.getDate()).slice(-2) +
+                        '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
+
+                $eventData.append('<div class="header icon-' + $(el).data('icon') + '">' +
+                    dateStr + '<h4>' + $(el).data('title') + '</h4>' +
+                    '</div>' +
+                    '<div class="description">' + $(el).data('text') + '</div>');
+                $legendContent.append($eventData);
+            });
+            $legend.html($legendContent.html());
+        },
+
+        refreshEventsLegend: function () {
+            var $timeLine = this._$timeLine,
+                $events = this._$events,
+                $legend = this._$legend,
+                leftLimit = $timeLine.offset().left,
+                rightLimit = $timeLine.offset().left + $timeLine.width() + (+$timeLine.css('padding-right').slice(0, -2) * 2);
+
+            $legend.find('.legend-item.in-view').each(function(index, item) {
+                $(item).removeClass('in-view');
+            });
+
+            $events.children().each(function(index, el) {
+                var leftBorder = $(el).offset().left;
+
+                // Checking if event item or group is in time-line viewport:
+                if ((leftBorder >= leftLimit) && (leftBorder <= rightLimit)) {
+                    // Check if group or single event
+                    if ($(el).hasClass('group-by')) {
+                        // group:
+                        $(el).children().each(function(index, item) {
+                            var $item = $(item),
+                                eventDate = $item.data('date');
+
+                            $legend.find('.legend-item[data-date="' + eventDate + '"]').addClass('in-view');
+                        });
+                    } else if ($(el).hasClass('events-item')) {
+                        // single:
+                        var $item = $(el),
+                            eventDate = $item.data('date');
+
+                        $legend.find('[data-date="' + eventDate + '"]').addClass('in-view');
+                    }
+                }
+
+            });
         },
 
         bind: function() {
@@ -534,78 +551,43 @@
                 $pluginContainer = this._$pluginContainer,
                 $timeLine = this._$timeLine,
                 $controls = this._$controls,
-                $events = this._$events,
                 $ruler = this._$ruler;
 
-            // TODO: optimize rendering
             $timeLine
                 .on('scroll zoom', function() {
-                    var leftLimit = $timeLine.offset().left,
-                        rightLimit = $timeLine.offset().left + $timeLine.width() + (+$timeLine.css('padding-right').slice(0, -2) * 2),
-                        $legend = $pluginContainer.find('.legend'),
-                        $legendContent = $('<div></div>');
-
-                    $events.children().each(function(index, el) {
-                        var leftBorder = $(el).offset().left;
-
-                        // Checking if event item or group is in time-line viewport:
-                        if ((leftBorder >= leftLimit) && (leftBorder <= rightLimit)) {
-                            // Check if group or single event
-                            if ($(el).hasClass('group-by')) {
-                                // group:
-                                $(el).children().each(function(index, item) {
-                                    var $eventData = $('<div class="legend-item"></div>'),
-                                        date = new Date($(item).data('date')),
-                                        dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
-                                            ('0' + date.getSeconds()).slice(-2) + ' ' + ('0' + date.getDate()).slice(-2) +
-                                            '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
-
-                                    $eventData.append('<div class="header icon-' + $(item).data('icon') + '">' +
-                                        dateStr + '<h4>' + $(item).data('title') + '</h4>' +
-                                        '</div>' +
-                                        '<div class="description">' + $(item).data('text') + '</div>');
-                                    $legendContent.append($eventData);
-                                });
-                            } else if ($(el).hasClass('events-item')) {
-                                // single:
-                                var $eventData = $('<div class="legend-item"></div>'),
-                                    date = new Date($(el).data('date')),
-                                    dateStr = date.getHours() + ':' + ('0' + date.getMinutes()).slice(-2) + ':' +
-                                        ('0' + date.getSeconds()).slice(-2) + ' ' + ('0' + date.getDate()).slice(-2) +
-                                        '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear();
-
-                                $eventData.append('<div class="header icon-' + $(el).data('icon') + '">' +
-                                    dateStr + '<h4>' + $(el).data('title') + '</h4>' +
-                                    '</div>' +
-                                    '<div class="description">' + $(el).data('text') + '</div>');
-                                $legendContent.append($eventData);
-                            }
-                        }
-
-                    });
-
-                    $legend.html($legendContent.html());
-                    plugin.redrawLegend();
+                    if (!$timeLine.is(':animated')) {
+                        clearTimeout($.data(this, 'scrollTimer'));
+                        $.data(this, 'scrollTimer', setTimeout(function() {
+                            plugin.refreshEventsLegend();
+                            plugin.redrawLegendCols();
+                        }, 100));
+                    }
                 });
 
             $controls
                 .on('click', '.zoom-in', function () {
-                    plugin.zoom('+', plugin._$timeLine);
+                    plugin.zoom('+');
                     console.log('zoom in plugin: ', $pluginContainer);
                 })
                 .on('click', '.zoom-out', function () {
                     console.log('zoom out plugin: ', $pluginContainer);
-                    plugin.zoom('-', plugin._$timeLine);
+                    plugin.zoom('-');
                 })
                 .on('click', '.scroll-right', function () {
                     var step = $ruler.width() / 24,
                         curScroll = $timeLine.scrollLeft();
-                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step + step}, 300);
+                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step + step},
+                        {duration: 300, done: function() {
+                                $timeLine.trigger('scroll');
+                        }});
                 })
                 .on('click', '.scroll-left', function () {
                     var step = $ruler.width() / 24,
                         curScroll = $timeLine.scrollLeft();
-                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step - step}, 300);
+                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step - step},
+                        {duration: 300, done: function() {
+                                $timeLine.trigger('scroll');
+                            }});
                 })
         }
     } );
