@@ -1,4 +1,5 @@
 const path = require('path'),
+    ConcatPlugin = require('webpack-concat-plugin'),
     ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
@@ -44,18 +45,19 @@ module.exports = {
   plugins: [
       new ExtractTextPlugin('styles.css', {
           allChunks: true
+      }),
+      new ConcatPlugin({
+          uglify: true,
+          filesToConcat: ['./src/eventsTimelinePlugin.js'],
+          name: 'eventsTimelinePlugin',
+          outputPath: './',
+          fileName: '[name].js'
       })
+
   ],
   devServer: {
         watchOptions: {
           ignored: /node_modules/
         }
-	}/*,
-    devServer: {
-        contentBase: [
-            path.resolve(__dirname, "dist"),
-            path.resolve(__dirname, "node_modules")
-        ],
-        publicPath:  "/"
-    }*/
+	}
 };

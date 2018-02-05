@@ -47,8 +47,6 @@
         this.element = element;
         this.args = arguments;
 
-        console.log(this.args);
-
         this._$pluginContainer = $(element);
 
         this._totalDuration = 0;
@@ -70,7 +68,6 @@
                 // data & options:
                 if ( Array.isArray(this.args[1]) && (this.args[2] === Object(this.args[2])) ) {
                     // correct types
-                    console.log('right way');
                     this.settings = $.extend( {}, this.settings, this.args[2] );
                     // sort data array by date
                     eventsList = this.args[1].sort(function(itemA, itemB) {
@@ -78,8 +75,6 @@
                             dateB = new Date(itemB.date);
                         return (dateA.getTime() - dateB.getTime());
                     });
-
-                    console.log('sorted data array: ', eventsList);
 
                     eventsHtml = '';
                     for (var i = 0; i < eventsList.length; i++) {
@@ -97,7 +92,6 @@
                 }
             } else if ((this.args[1] === Object(this.args[1])) && !Array.isArray(this.args[1])) {
                 // options only
-                console.log('options only');
                 this.settings = $.extend( {}, this.settings, this.args[1] );
             } else if (Array.isArray(this.args[1])) {
                 // data array only
@@ -121,13 +115,10 @@
                 this.sortEventNodes(this._$pluginContainer);
                 eventsList = this.getEventsListFromContainer(this._$pluginContainer);
             }
-            console.log(eventsList);
             this._firstEventDate = eventsList[0].date;
             this._lastEventDate = eventsList[eventsList.length - 1].date;
             this._totalDuration = this._lastEventDate - this._firstEventDate;
             this._zoomLevel = 1;
-
-            console.log(this);
 
             this._$pluginContainer
                 .addClass('time-line-plugin')
@@ -174,7 +165,6 @@
 
         getEventsListFromContainer: function ($container) {
             var eventsList = [];
-            console.log($container);
 
             $container.find('[data-type][data-date]').each(function(index, item) {
                 var event = {};
@@ -227,10 +217,6 @@
                                 });
 
                             if ($group.length > 1) {
-                                console.log('=========================');
-                                console.log('group on zoom ', zoomToLevel);
-                                console.log($group);
-
                                 var step = $ruler.width() / (settings.finish - settings.start),
                                     $wrapper = $('<div class="group-by hour"></div>'),
                                     offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
@@ -245,7 +231,6 @@
                     case 2:
                         // group by 30 min
                         var $groupsHour = plugin._$events.find('.group-by.hour');
-                        console.log($groupsHour);
                         $groupsHour.each(function (index, group) {
                             var $group = $(group).children();
                             $group.unwrap('.group-by');
@@ -256,7 +241,6 @@
                     case 3:
                         // group by 15 min
                         var $groups30min = plugin._$events.find('.group-by.30min');
-                        console.log($groups30min);
                         $groups30min.each(function (index, group) {
                             var $group = $(group).children();
                             $group.unwrap('.group-by');
@@ -266,7 +250,6 @@
                     case 4:
                         // group by 5 min
                         var $groups15min = plugin._$events.find('.group-by.15min');
-                        console.log($groups15min);
                         $groups15min.each(function (index, group) {
                             var $group = $(group).children();
                             $group.unwrap('.group-by');
@@ -420,7 +403,8 @@
                 cols = 0,
                 $legend = this._$pluginContainer.find('.legend'),
                 $eventsInView,
-                $cols;
+                $cols,
+                colsHeight = [];
 
             // Убираем группировку по колонкам
             $legend.find('.col-3').each(function (index, col) {
@@ -439,13 +423,6 @@
                 listHeight += itemHeight;
                 if (listHeight >= listHeightLimit) {
                     end = (listHeight === listHeightLimit) ? (i + 1) : i;
-                    if ($eventsInView.length > 3) {
-                        if (($eventsInView.length % 3 === 2) && (cols === 1)) {
-                            end += 1;
-                        } else if  (($eventsInView.length % 3 > 0) && (cols === 0)) {
-                            end += 1;
-                        }
-                    }
                     $eventsInView.slice(start, end).wrapAll('<div class="col-3"></div>');
                     start = end;
                     listHeight = 0;
@@ -456,6 +433,23 @@
             if (cols < 3)
                 $eventsInView.slice(start, $eventsInView.length).wrapAll('<div class="col-3"></div>');
 
+            if ($eventsInView.length > 3) {
+                $cols = $legend.find('.col-3');
+                $cols.each(function(index, col) {
+                    colsHeight.push(col.clientHeight);
+                });
+
+                if ((colsHeight[0] + 50 < (colsHeight[1])) && (colsHeight[1] <= (colsHeight[2]))) {
+                    $($cols[2]).children().first().appendTo($($cols[1]));
+                    $($cols[1]).children().first().appendTo($($cols[0]));
+                } else if ((colsHeight[0] + 50 < (colsHeight[1])) && (colsHeight[1] > (colsHeight[2]))) {
+                    $($cols[1]).children().first().appendTo($($cols[0]));
+                } else if ((colsHeight[0] + 50 < (colsHeight[2])) &&
+                    (colsHeight[1] < (colsHeight[2])) &&
+                    ($eventsInView.length % 3 > 0)) {
+                    $($cols[2]).children().first().appendTo($($cols[1]));
+                }
+            }
         },
 
         zoom: function(zoomType) {
@@ -491,7 +485,6 @@
                         done: function(){
                             // Если увеличиваем масштаб, то перегруппируем события после анимации
                             if (zoomType === '+') {
-                                console.log('zooming in');
                                 plugin.groupEvents(newZoomLevel, curZoomLevel);
                             }
                             $timeLine.trigger('zoom');
@@ -556,12 +549,15 @@
         },
 
         bind: function() {
-            console.log(this._$pluginContainer);
             var plugin = this,
                 $pluginContainer = this._$pluginContainer,
                 $timeLine = this._$timeLine,
                 $controls = this._$controls,
                 $ruler = this._$ruler;
+
+            $pluginContainer.on('click', '.group-by', function () {
+                console.log(this);
+            });
 
             $timeLine
                 .on('scroll zoom', function() {
@@ -594,15 +590,15 @@
                     plugin._$controls.find('.zoom-in').attr('disabled', false);
                 })
                 .on('click', '.scroll-right', function () {
-                    var step = $ruler.width() / 24,
-                        curScroll = $timeLine.scrollLeft();
-                    $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step + step},
+                    var step = $ruler.width() / (plugin.settings.finish - plugin.settings.start),
+                        curScroll = $timeLine.scrollLeft() + 25;
+                    $timeLine.animate({scrollLeft: Math.floor(curScroll / step) * step + step},
                         {duration: 300, done: function() {
                                 $timeLine.trigger('scroll');
                         }});
                 })
                 .on('click', '.scroll-left', function () {
-                    var step = $ruler.width() / 24,
+                    var step = $ruler.width() / (plugin.settings.finish - plugin.settings.start),
                         curScroll = $timeLine.scrollLeft();
                     $timeLine.animate({scrollLeft: Math.ceil(curScroll / step) * step - step},
                         {duration: 300, done: function() {
