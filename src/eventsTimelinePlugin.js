@@ -419,25 +419,34 @@
                 end = 0,
                 cols = 0,
                 $legend = this._$pluginContainer.find('.legend'),
-                $events;
+                $eventsInView,
+                $cols;
 
             // Убираем группировку по колонкам
             $legend.find('.col-3').each(function (index, col) {
                 $(col).children().unwrap('.col-3');
             });
 
-            $events = $legend.children('.in-view');
-            $events.each(function (index, event) {
+            $eventsInView = $legend.children('.in-view');
+            $eventsInView.each(function (index, event) {
                 totalHeight += $(event).height();
             });
 
             listHeightLimit = totalHeight / 3;
 
-            for (var i = 0; i < $events.length; i ++) {
-                listHeight += $($events[i]).height();
+            for (var i = 0; i < $eventsInView.length; i ++) {
+                var itemHeight = $($eventsInView[i]).height();
+                listHeight += itemHeight;
                 if (listHeight >= listHeightLimit) {
                     end = (listHeight === listHeightLimit) ? (i + 1) : i;
-                    $events.slice(start, end).wrapAll('<div class="col-3"></div>');
+                    if ($eventsInView.length > 3) {
+                        if (($eventsInView.length % 3 === 2) && (cols === 1)) {
+                            end += 1;
+                        } else if  (($eventsInView.length % 3 > 0) && (cols === 0)) {
+                            end += 1;
+                        }
+                    }
+                    $eventsInView.slice(start, end).wrapAll('<div class="col-3"></div>');
                     start = end;
                     listHeight = 0;
                     cols += 1;
@@ -445,7 +454,8 @@
                 if (cols === 2) break;
             }
             if (cols < 3)
-                $events.slice(start, $events.length).wrapAll('<div class="col-3"></div>');
+                $eventsInView.slice(start, $eventsInView.length).wrapAll('<div class="col-3"></div>');
+
         },
 
         zoom: function(zoomType) {
@@ -566,12 +576,22 @@
 
             $controls
                 .on('click', '.zoom-in', function () {
+                    var $btn = $(this);
                     plugin.zoom('+');
-                    console.log('zoom in plugin: ', $pluginContainer);
+                    if (plugin._zoomLevel === 10) {
+                        $btn.attr('disabled', true);
+                    } else {
+                        $btn.attr('disabled', false);
+                    }
+                    plugin._$controls.find('.zoom-out').attr('disabled', false);
                 })
                 .on('click', '.zoom-out', function () {
-                    console.log('zoom out plugin: ', $pluginContainer);
                     plugin.zoom('-');
+                    if (plugin._zoomLevel === 1)
+                        $(this).attr('disabled', true);
+                    else
+                        $(this).attr('disabled', false);
+                    plugin._$controls.find('.zoom-in').attr('disabled', false);
                 })
                 .on('click', '.scroll-right', function () {
                     var step = $ruler.width() / 24,
