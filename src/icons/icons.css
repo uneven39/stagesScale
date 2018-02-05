@@ -1,0 +1,11 @@
+.time-line-plugin .time-line .events-item.icon-png {
+    background: url("http://wfarm3.dataknet.com/static/resources/icons/set112/f2afb6f7.png"),
+                url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 60'%3E%3Cpath fill='%2359F622' d='M20 0C8.954 0 0 8.954 0 20a19.995 19.995 0 0 0 5.68 13.959h-.004L18 46.599V60h4V46.6l12.324-12.641h-.03A19.996 19.996 0 0 0 40 20C40 8.954 31.046 0 20 0z'/%3E%3C/svg%3E");
+    background-size: 60%,100%;
+    background-position: 50% 22%;
+    background-repeat: no-repeat;
+}
+
+.time-line-plugin .time-line .events-item.icon-png:before {
+    border-color: #b1f682
+}

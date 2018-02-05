@@ -11,6 +11,19 @@
             'legendHeight': 'auto',
             'zoomLevel' : 1
         },
+        zoomLevels = [
+            100,
+            100,
+            110,
+            120,
+            130,
+            140,
+            150,
+            160,
+            170,
+            185,
+            200
+        ],
         ruler24Labels = [
             '01:00',
             '02:00',
@@ -146,7 +159,7 @@
             this.initLegend();
 
             this.bind();
-            this.zoom('-');
+            this.groupEvents();
             this.refreshEventsLegend();
             this.redrawLegendCols();
 
@@ -197,148 +210,92 @@
             this._$timeLine.append($ruler);
         },
 
-        groupEvents: function(zoomToLevel, zoomFromLevel){
+        groupEvents: function(){
             var plugin = this,
+                settings = this.settings,
                 $ruler = plugin._$ruler,
-                settings = plugin.settings,
-                isZoomIn = zoomToLevel > zoomFromLevel;
+                $events = plugin._$events,
+                $activeItems,
+                eventWidth;
 
-            if (isZoomIn) {
-                switch (zoomToLevel) {
-                    case 1:
-                        // group by 60 min
-                        this.ungroupEvents();
-                        for (var hour = plugin.settings.start; hour < plugin.settings.finish; hour++) {
-                            var $group = plugin._$events
-                                .children(':not(.hidden)')
-                                .filter(function (index, event) {
-                                    var date = new Date($(event).data('date'));
-                                    return (date.getHours() === hour);
-                                });
+            this.ungroupEvents();
 
-                            if ($group.length > 1) {
-                                var step = $ruler.width() / (settings.finish - settings.start),
-                                    $wrapper = $('<div class="group-by hour"></div>'),
-                                    offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
-                                $wrapper
-                                    .css('left', offset + '%')
-                                    .attr('data-count', $group.length);
-                                $group.wrapAll($wrapper);
-                            }
-                        }
+            eventWidth = $events.find('.events-item:not(.hidden)').width() || 40;
 
-                        break;
-                    case 2:
-                        // group by 30 min
-                        var $groupsHour = plugin._$events.find('.group-by.hour');
-                        $groupsHour.each(function (index, group) {
-                            var $group = $(group).children();
-                            $group.unwrap('.group-by');
-                            groupByRange(30, $group);
-                        });
+            $activeItems = $events.children(':not(.hidden)');
 
-                        break;
-                    case 3:
-                        // group by 15 min
-                        var $groups30min = plugin._$events.find('.group-by.30min');
-                        $groups30min.each(function (index, group) {
-                            var $group = $(group).children();
-                            $group.unwrap('.group-by');
-                            groupByRange(15, $group);
-                        });
-                        break;
-                    case 4:
-                        // group by 5 min
-                        var $groups15min = plugin._$events.find('.group-by.15min');
-                        $groups15min.each(function (index, group) {
-                            var $group = $(group).children();
-                            $group.unwrap('.group-by');
-                            groupByRange(5, $group);
-                        });
-                        break;
-                    case 5:
-                        // group by 1 min
-                        plugin._$events.find('.group-by').each(function (index, group) {
-                            var $group = $(group),
-                                $items = $group.children();
-                            $group.children().unwrap('.group-by');
-                            groupByRange(1, $items);
-                        });
-                        break;
-                }
-            } else {
-                this.ungroupEvents();
-                for (var hour = plugin.settings.start; hour < plugin.settings.finish; hour++) {
-                    var $group = plugin._$events
-                        .children(':not(.hidden)')
-                        .filter(function (index, event) {
-                            var date = new Date($(event).data('date'));
-                            return (date.getHours() === hour);
-                        });
+            for (var hour = settings.start; hour < settings.finish; hour++) {
+                var $hourGroup = $activeItems.filter(function (index, event) {
+                        var date = new Date($(event).data('date'));
+                        return (date.getHours() === hour);
+                    });
 
-                    if ($group.length > 1) {
-                        switch (zoomToLevel) {
-                            case 1:
-                                var step = $ruler.width() / (settings.finish - settings.start),
-                                    $wrapper = $('<div class="group-by hour"></div>'),
-                                    offset = ((step * (hour - settings.start) + step / 2) / $ruler.width()) * 100;
-                                $wrapper
-                                    .css('left', offset + '%')
-                                    .attr('data-count', $group.length);
-                                $group.wrapAll($wrapper);
-                                break;
-                            case 2:
-                                groupByRange(30, $group);
-                                break;
-                            case 3:
-                                groupByRange(15, $group);
-                                break;
-                            case 4:
-                                groupByRange(5, $group);
-                                break;
-                            case 5:
-                            case 6:
-                            case 7:
-                            case 8:
-                            case 9:
-                            case 10:
-                                groupByRange(1, $group);
-                                break;
-                        }
-
-                    }
+                if ($hourGroup.length > 1) {
+                    groupNearest($hourGroup);
                 }
             }
 
-            function groupByRange(range, $group) {
-                var firstEventIdx = 0,
-                    count = $group.length;
+            // Перепроверяем получившиеся группировки: если есть соседние лейлблы, налезающие на
+            // текущий, то объединяем:
+            $events.children(':not(.hidden)').each(function (index, item) {
+                var $item = $(item),
+                    $next = $item.next(),
+                    isOverlap = $next.offset() ?
+                        $next.offset().left < ($item.offset().left + eventWidth * 0.666) :
+                        false;
+                if (isOverlap && $item.hasClass('group-by')) {
+                    if ($next.hasClass('group-by')) {
+                        $next.children().appendTo($item);
+                        $next.remove();
+                        $item.attr('data-count', $item.children().length);
+                    } else {
+                        $next.appendTo($item);
+                        $item.attr('data-count', $item.children().length);
+                    }
+                } else if (isOverlap && !$item.hasClass('group-by')) {
+                    if ($next.hasClass('group-by')) {
+                        $item.prependTo($next);
+                        $next.attr('data-count', $next.children().length);
+                    } else {
+                        var $newGroup = $([$item[0], $next[0]]);
+                        groupNearest($newGroup);
+                    }
+                }
+            });
 
-                for (var i = 0; i < count; i++) {
-                    var $item = $($group[i]),
-                        curEventDate = new Date($item.data('date')),
-                        firstEventDate = new Date($($group[firstEventIdx]).data('date'));
+            function groupNearest($collection) {
+                var startGroupIdx = 0,
+                    endGroupIdx = 0;
 
-                    if ((curEventDate.getMinutes() >= firstEventDate.getMinutes() + range) || i === (count - 1)) {
-                        var leftOffsetFirst = $($group[firstEventIdx]).css('left'),
-                            leftOffsetLast = $($group[i-1]).css('left');
+                // Группируем события в каждом часе
+                for (var i = 1; i < $collection.length; i++) {
+                    var $item = $($collection[i]),
+                        $prevItem = $($collection[i - 1]),
+                        isOverlap = $item.offset().left < ($prevItem.offset().left + eventWidth * 0.666);
 
-                        leftOffsetFirst = +leftOffsetFirst.substring(0, leftOffsetFirst.length - 2);
-                        leftOffsetLast = +leftOffsetLast.substring(0, leftOffsetLast.length - 2);
+                    if (isOverlap) {
+                        endGroupIdx = i;
+                    }
 
-                        // Значение смещения иконки группы в процентах от общей длины шкалы
-                        offset = 100 * ((leftOffsetLast + leftOffsetFirst) / 2) / $ruler.width();
-                        var $wrapper = $('<div class="group-by ' + range + 'min' + '"></div>');
-                        $wrapper
-                            .css('left', offset + '%');
-                        if ((i === (count - 1)) && (curEventDate.getMinutes() < firstEventDate.getMinutes() + range)) {
-                            $wrapper.attr('data-count', count - firstEventIdx);
-                            $group.slice(firstEventIdx, i + 1).wrapAll($wrapper);
-                        } else if (i - firstEventIdx > 1) {
-                            $wrapper.attr('data-count', i - firstEventIdx);
-                            $group.slice(firstEventIdx, i).wrapAll($wrapper);
+                    if (!isOverlap || (i === ($collection.length - 1))) {
+                        if ((endGroupIdx - startGroupIdx) > 0) {
+                            var $wrapper = $('<div class="group-by"></div>'),
+                                $group = $collection.slice(startGroupIdx, endGroupIdx + 1),
+                                offset,
+                                leftOffsetFirst = $($group[0]).css('left'),
+                                leftOffsetLast = $($group[$group.length - 1]).css('left');
+
+                            leftOffsetFirst = +leftOffsetFirst.substring(0, leftOffsetFirst.length - 2);
+                            leftOffsetLast = +leftOffsetLast.substring(0, leftOffsetLast.length - 2);
+
+                            offset = 100 * ((leftOffsetLast + leftOffsetFirst) / 2) / $ruler.width();
+                            $wrapper
+                                .attr('data-count', $group.length)
+                                .css('left', offset + '%');
+
+                            $group.wrapAll($wrapper);
                         }
-                        firstEventIdx = i;
+                        startGroupIdx = i;
                     }
                 }
             }
@@ -464,9 +421,7 @@
                     newZoomLevel = this._zoomLevel === 10 ? this._zoomLevel : this._zoomLevel + 1;
                     break;
                 case '-':
-                    // Если уменьшаем масштаб, то сразу перегруппируем события
                     newZoomLevel = this._zoomLevel === 1 ? 1 : this._zoomLevel - 1;
-                    this.groupEvents(newZoomLevel, curZoomLevel);
                     break;
                 default:
                     newZoomLevel = this._zoomLevel;
@@ -477,16 +432,14 @@
 
             curScroll = $timeLine.scrollLeft();
 
-            $timeLine.animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*newZoomLevel/curZoomLevel - $timeLine.width()/2)}, 300);
-            $timeLine.find('.ruler').animate({width: 100 * newZoomLevel + '%'}, 300);
+            $timeLine.animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*( zoomLevels[newZoomLevel] * newZoomLevel)/( zoomLevels[curZoomLevel] * curZoomLevel) - $timeLine.width()/2)}, 300);
+            $timeLine.find('.ruler').animate({width: zoomLevels[newZoomLevel] * newZoomLevel + '%'}, 300);
             $timeLine.find('.events')
-                .animate({width: 100 * newZoomLevel + '%'},
+                .animate({width: zoomLevels[newZoomLevel] * newZoomLevel + '%'},
                     {duration: 300,
                         done: function(){
-                            // Если увеличиваем масштаб, то перегруппируем события после анимации
-                            if (zoomType === '+') {
-                                plugin.groupEvents(newZoomLevel, curZoomLevel);
-                            }
+                            // перегруппируем события после анимации
+                            plugin.groupEvents(newZoomLevel);
                             $timeLine.trigger('zoom');
                         }
                     });

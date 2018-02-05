@@ -4,10 +4,10 @@ var dataArray = [
     {date: "2018/02/02 04:23:00", type: "тип события 1", icon: "type1", title: "Заголовок 2", text: "html-текст события 2"},
     {date: "2018/02/02 05:33:00", type: "тип события 1", icon: "type1", title: "Заголовок 3", text: "html-текст события 3"},
     {date: "2018/02/02 07:11:00", type: "тип события 2", icon: "type2", title: "Заголовок 4", text: "html-текст события 4"},
-    {date: "2018/02/02 08:56:00", type: "тип события 3", icon: "type3", title: "Заголовок 5", text: "html-текст события 5"},
+    {date: "2018/02/02 08:16:00", type: "тип события 3", icon: "type3", title: "Заголовок 5", text: "html-текст события 5"},
     {date: "2018/02/02 08:57:00", type: "тип события 4", icon: "type4", title: "Заголовок 6", text: "html-текст события 6"},
     {date: "2018/02/02 09:01:00", type: "тип события 4", icon: "type4", title: "Заголовок 7", text: "html-текст события 7"},
-    {date: "2018/02/02 10:05:00", type: "тип события 5", icon: "type5", title: "Заголовок 8", text: "html-текст события 8"},
+    {date: "2018/02/02 09:05:00", type: "тип события 5", icon: "type5", title: "Заголовок 8", text: "html-текст события 8"},
     {date: "2018/02/02 11:15:00", type: "тип события 2", icon: "type2", title: "Заголовок 9", text: "html-текст события 9"},
     {date: "2018/02/02 11:35:00", type: "тип события 4", icon: "type4", title: "Заголовок 10", text: "html-текст события 10"},
     {date: "2018/02/02 12:25:00", type: "тип события 3", icon: "type3", title: "Заголовок 11", text: "html-текст события 11"},
@@ -70,4 +70,4 @@ var dataArray = [
     ];
 
 $('.test2').eventsTimeLine(dataArray, {start: 'auto', finish: 'auto', legendHeight: 'auto'});
-$('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200});
+// $('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200});
