@@ -49,6 +49,7 @@ $event-icon-file-color-outer: #8a86f6;
     border-style: solid;
     display: block;
     box-sizing: border-box;
+    transition: .3s box-shadow;
   }
   &:after {
     content: '';
@@ -118,6 +119,10 @@ $event-icon-file-color-outer: #8a86f6;
 
         &:hover {
           z-index: 20;
+
+          &:before {
+            box-shadow: 0 0 15px #8c8c8c;
+          }
         }
 
         &.icon{
@@ -149,6 +154,10 @@ $event-icon-file-color-outer: #8a86f6;
 
         &:hover {
           z-index: 20;
+
+          &:before {
+            box-shadow: 0 0 15px #8c8c8c;
+          }
         }
       }
     }

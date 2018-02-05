@@ -339,7 +339,7 @@
                 if (isInRange) {
                     position = ((rangeLength - (maxDateLimit.getTime() - date)) / rangeLength)*100 + '%';
                     $item
-                        .attr('data-text', $item.text())
+                        .attr('data-text', $item.html())
                         .text('')
                         .addClass('events-item')
                         .addClass('icon-' + $item.data('icon'))
