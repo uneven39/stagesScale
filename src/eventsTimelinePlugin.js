@@ -164,6 +164,7 @@
             this.redrawLegendCols();
 
         },
+
         sortEventNodes: function($container) {
             var $sortedData = $container.find('[data-type][data-date]').sort(function (itemA, itemB) {
                 var dateA = new Date($(itemA).data('date')).getTime(),
@@ -390,7 +391,7 @@
             if (cols < 3)
                 $eventsInView.slice(start, $eventsInView.length).wrapAll('<div class="col-3"></div>');
 
-            if ($eventsInView.length > 3) {
+            /*if ($eventsInView.length > 3) {
                 $cols = $legend.find('.col-3');
                 $cols.each(function(index, col) {
                     colsHeight.push(col.clientHeight);
@@ -406,7 +407,7 @@
                     ($eventsInView.length % 3 > 0)) {
                     $($cols[2]).children().first().appendTo($($cols[1]));
                 }
-            }
+            }*/
         },
 
         zoom: function(zoomType) {
