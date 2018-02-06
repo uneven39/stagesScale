@@ -11,6 +11,11 @@
             'legendHeight': 'auto',
             'zoomLevel' : 1
         },
+        cols = {
+            xs: 420, // cols-1
+            sm: 640, // cols-2
+            md: 960 // cols-3
+        },
         zoomLevels = [
             100,
             100,
@@ -161,7 +166,7 @@
             this.bind();
             this.groupEvents();
             this.refreshEventsLegend();
-            this.redrawLegendCols();
+            // this.redrawLegendCols();
 
         },
 
@@ -429,6 +434,9 @@
                     });
         },
 
+        /**
+         * Fill .legend node with events descriptions
+         */
         initLegend: function () {
             var $legend = this._$pluginContainer.find('.legend'),
                 $legendContent = $('<div></div>');
@@ -448,16 +456,26 @@
             $legend.html($legendContent.html());
         },
 
+        /**
+         * Update visible events description in .legend
+         */
         refreshEventsLegend: function () {
             var $timeLine = this._$timeLine,
                 $events = this._$events,
                 $legend = this._$legend,
+                $cols = $legend.find('.cols'),
+                $colsWrapper = $('<div class="cols"></div>'),
+                legendWidth = $legend.width(),
                 leftLimit = $timeLine.offset().left,
                 rightLimit = $timeLine.offset().left + $timeLine.width() + (+$timeLine.css('padding-right').slice(0, -2) * 2);
 
-            $legend.find('.legend-item.in-view').each(function(index, item) {
-                $(item).removeClass('in-view');
-            });
+            if ($cols.length) {
+                $cols.children()
+                    .each(function(index, item) {
+                        $(item).removeClass('in-view');
+                    })
+                    .unwrap('.cols');
+            }
 
             $events.children().each(function(index, el) {
                 var leftBorder = $(el).offset().left;
@@ -483,6 +501,18 @@
                 }
 
             });
+
+            if (legendWidth <= cols.xs) {
+                $colsWrapper.addClass('cols-1');
+            } else if (legendWidth > cols.xs && legendWidth <= cols.sm) {
+                $colsWrapper.addClass('cols-2');
+            } else if (legendWidth > cols.sm && legendWidth <= cols.md) {
+                $colsWrapper.addClass('cols-3');
+            } else if (legendWidth > cols.md) {
+                $colsWrapper.addClass('cols-4');
+            }
+
+            $legend.find('.legend-item.in-view').wrapAll($colsWrapper);
         },
 
         highlightLegendItem: function($item) {
@@ -522,13 +552,18 @@
                 $controls = this._$controls,
                 $ruler = this._$ruler;
 
+            $(window).on('resize', function(e) {
+                console.log(e);
+                plugin.refreshEventsLegend();
+            });
+
             $timeLine
                 .on('scroll zoom', function() {
                     if (!$timeLine.is(':animated')) {
                         clearTimeout($.data(this, 'scrollTimer'));
                         $.data(this, 'scrollTimer', setTimeout(function() {
                             plugin.refreshEventsLegend();
-                            plugin.redrawLegendCols();
+                            // plugin.redrawLegendCols();
                         }, 100));
                     }
                 })

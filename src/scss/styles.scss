@@ -246,9 +246,59 @@ $event-icon-file-color-outer: #8a86f6;
     overflow-y: auto;
     overflow-x: hidden;
 
+    .cols {
+      height: 100%;
+      width: 100%;
+
+      &.cols-1 {
+        .legend-item {
+          width: 100%;
+
+          &.in-view:nth-of-type(n) {
+            clear: left;
+          }
+        }
+      }
+      &.cols-2 {
+        .legend-item {
+          width: 50%;
+
+          &.in-view:nth-of-type(n) {
+            clear: none;
+          }
+          &.in-view:nth-of-type(2n + 1) {
+            clear: left;
+          }
+        }
+      }
+      &.cols-3 {
+        .legend-item {
+          width: 33.333%;
+
+          &.in-view:nth-of-type(n) {
+            clear: none;
+          }
+          &.in-view:nth-of-type(3n + 1) {
+            clear: left;
+          }
+        }
+      }
+      &.cols-4 {
+        .legend-item {
+          width: 25%;
+
+          &.in-view:nth-of-type(n) {
+            clear: none;
+          }
+          &.in-view:nth-of-type(4n + 1) {
+            clear: left;
+          }
+        }
+      }
+    }
+
     &-item {
       display: inline-block;
-      width: 33.33%;
       visibility: hidden;
       position: absolute;
       padding: 5px 15px 20px 50px;
@@ -259,7 +309,8 @@ $event-icon-file-color-outer: #8a86f6;
       &.in-view {
         visibility: visible;
         position: relative;
-        width: 100%;
+        float: left;
+        width: 20%;
       }
 
       &.highlight {
