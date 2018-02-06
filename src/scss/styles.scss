@@ -251,7 +251,7 @@ $event-icon-file-color-outer: #8a86f6;
       width: 33.33%;
       visibility: hidden;
       position: absolute;
-      padding: 5px 15px 20px 40px;
+      padding: 5px 15px 20px 50px;
       box-sizing: border-box;
       bottom: 0;
       left: 0;
@@ -262,25 +262,42 @@ $event-icon-file-color-outer: #8a86f6;
         width: 100%;
       }
 
+      &.highlight {
+        float: left;
+        overflow-y: hidden;
+
+        &:before {
+          content: '';
+          display: block;
+          position: absolute;
+          width: 5px;
+          height: 100%;
+          bottom: 10px;
+          background-color: #fecf4d;
+          left: 0;
+        }
+      }
+
       .header {
+
+        &:before {
+          content: '';
+          position: absolute;
+          width: 28px;
+          height: 28px;
+          background-color: gray;
+          border-radius: 15px;
+          top: 0;
+          left: 12px;
+        }
+
         h4 {
           margin: 5px 0 10px;
-
-          &:before {
-            content: '';
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            background-color: gray;
-            border-radius: 15px;
-            top: 0;
-            left: 0;
-          }
         }
 
         &.icon{
           &-file {
-            & h4:before {
+            &:before {
               background-image: url("../icons/file.png");
               background-position: center;
               background-size: 20px auto;
@@ -289,7 +306,7 @@ $event-icon-file-color-outer: #8a86f6;
           }
 
           &-folder {
-            & h4:before {
+            &:before {
               background-image: url("../icons/folder.png");
               background-position: center;
               background-size: 20px auto;

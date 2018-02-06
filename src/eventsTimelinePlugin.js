@@ -391,23 +391,6 @@
             if (cols < 3)
                 $eventsInView.slice(start, $eventsInView.length).wrapAll('<div class="col-3"></div>');
 
-            /*if ($eventsInView.length > 3) {
-                $cols = $legend.find('.col-3');
-                $cols.each(function(index, col) {
-                    colsHeight.push(col.clientHeight);
-                });
-
-                if ((colsHeight[0] + 50 < (colsHeight[1])) && (colsHeight[1] <= (colsHeight[2]))) {
-                    $($cols[2]).children().first().appendTo($($cols[1]));
-                    $($cols[1]).children().first().appendTo($($cols[0]));
-                } else if ((colsHeight[0] + 50 < (colsHeight[1])) && (colsHeight[1] > (colsHeight[2]))) {
-                    $($cols[1]).children().first().appendTo($($cols[0]));
-                } else if ((colsHeight[0] + 50 < (colsHeight[2])) &&
-                    (colsHeight[1] < (colsHeight[2])) &&
-                    ($eventsInView.length % 3 > 0)) {
-                    $($cols[2]).children().first().appendTo($($cols[1]));
-                }
-            }*/
         },
 
         zoom: function(zoomType) {
@@ -502,16 +485,42 @@
             });
         },
 
+        highlightLegendItem: function($item) {
+            var $legend = this._$legend;
+            if ($item.hasClass('group-by')) {
+                $item.children().each(function (index, item) {
+                    var legendSelector = '.legend-item[data-date="' + $(item).data('date') + '"]',
+                        $legendItem = $legend.find(legendSelector);
+                    $legendItem.addClass('highlight');
+                })
+            } else {
+                var legendSelector = '.legend-item[data-date="' + $item.data('date') + '"]',
+                    $legendItem = $legend.find(legendSelector);
+                $legendItem.addClass('highlight');
+            }
+        },
+
+        unhighlightLegendItem: function($item) {
+            var $legend = this._$legend;
+            if ($item.hasClass('group-by')) {
+                $item.children().each(function (index, item) {
+                    var legendSelector = '.legend-item[data-date="' + $(item).data('date') + '"]',
+                        $legendItem = $legend.find(legendSelector);
+                    $legendItem.removeClass('highlight');
+                })
+            } else {
+                var legendSelector = '.legend-item[data-date="' + $item.data('date') + '"]',
+                    $legendItem = this._$legend.find(legendSelector);
+                $legendItem.removeClass('highlight');
+            }
+        },
+
         bind: function() {
             var plugin = this,
                 $pluginContainer = this._$pluginContainer,
                 $timeLine = this._$timeLine,
                 $controls = this._$controls,
                 $ruler = this._$ruler;
-
-            $pluginContainer.on('click', '.group-by', function () {
-                console.log(this);
-            });
 
             $timeLine
                 .on('scroll zoom', function() {
@@ -522,6 +531,12 @@
                             plugin.redrawLegendCols();
                         }, 100));
                     }
+                })
+                .on('mouseenter', '.events-item, .group-by', function() {
+                    plugin.highlightLegendItem($(this));
+                })
+                .on('mouseleave', '.events-item, .group-by', function() {
+                    plugin.unhighlightLegendItem($(this));
                 });
 
             $controls
