@@ -9,12 +9,13 @@
             'start': 0,
             'finish': 24,
             'legendHeight': 'auto',
-            'zoomLevel' : 1
+            'zoomLevel' : 1,
+            'eventDescHeight': 200
         },
         cols = {
-            xs: 420, // cols-1
-            sm: 640, // cols-2
-            md: 960 // cols-3
+            xs: 420, // max width for 1 column
+            sm: 960, // max width for 2 column
+            md: 1240 // max width for 3 column & min width for 4 columns
         },
         zoomLevels = [
             100,
@@ -60,8 +61,6 @@
 
     // plugin constructor
     function Plugin (element, dataArray, options) {
-        var self = this;
-
         this.element = element;
         this.args = arguments;
 
@@ -166,7 +165,6 @@
             this.bind();
             this.groupEvents();
             this.refreshEventsLegend();
-            // this.redrawLegendCols();
 
         },
 
@@ -356,6 +354,7 @@
             });
 
         },
+/*
 
         redrawLegendCols: function() {
             var totalHeight = 0,
@@ -397,6 +396,7 @@
                 $eventsInView.slice(start, $eventsInView.length).wrapAll('<div class="col-3"></div>');
 
         },
+*/
 
         zoom: function(zoomType) {
             var $timeLine = this._$timeLine,
@@ -435,7 +435,7 @@
         },
 
         /**
-         * Fill .legend node with events descriptions
+         * Fill .legend by events descriptions
          */
         initLegend: function () {
             var $legend = this._$pluginContainer.find('.legend'),
@@ -457,12 +457,13 @@
         },
 
         /**
-         * Update visible events description in .legend
+         * Update visible events descriptions in .legend
          */
         refreshEventsLegend: function () {
-            var $timeLine = this._$timeLine,
-                $events = this._$events,
-                $legend = this._$legend,
+            var plugin = this,
+                $timeLine = plugin._$timeLine,
+                $events = plugin._$events,
+                $legend = plugin._$legend,
                 $cols = $legend.find('.cols'),
                 $colsWrapper = $('<div class="cols"></div>'),
                 legendWidth = $legend.width(),
@@ -475,6 +476,26 @@
                         $(item).removeClass('in-view');
                     })
                     .unwrap('.cols');
+            } else {
+                $legend.children('.legend-item.in-view')
+                    .each(function(index, item) {
+                        $(item).removeClass('in-view');
+                    })
+            }
+
+            // Set columns widths depending on .legend width
+            if (legendWidth <= cols.xs) {
+                $legend.removeClass('lg md sm')
+                    .addClass('xs');
+            } else if (legendWidth > cols.xs && legendWidth <= cols.sm) {
+                $legend.removeClass('lg md xs')
+                    .addClass('sm');
+            } else if (legendWidth > cols.sm && legendWidth <= cols.md) {
+                $legend.removeClass('lg sm xs')
+                    .addClass('md');
+            } else if (legendWidth > cols.md) {
+                $legend.removeClass('md sm xs')
+                    .addClass('lg');
             }
 
             $events.children().each(function(index, el) {
@@ -487,34 +508,37 @@
                         // group:
                         $(el).children().each(function(index, item) {
                             var $item = $(item),
-                                eventDate = $item.data('date');
+                                eventDate = $item.data('date'),
+                                $legendItem = $legend.find('.legend-item[data-date="' + eventDate + '"]');
 
-                            $legend.find('.legend-item[data-date="' + eventDate + '"]').addClass('in-view');
+                            $legendItem.addClass('in-view');
+                            if ($legendItem.height() > plugin.settings.eventDescHeight) {
+                                $legendItem.addClass('extendable');
+                            }
                         });
                     } else if ($(el).hasClass('events-item')) {
                         // single:
                         var $item = $(el),
-                            eventDate = $item.data('date');
+                           eventDate = $item.data('date'),
+                           $legendItem = $legend.find('.legend-item[data-date="' + eventDate + '"]');
 
-                        $legend.find('[data-date="' + eventDate + '"]').addClass('in-view');
+                       $legendItem.addClass('in-view');
+                       console.log('legend item height: ', $legendItem, $legendItem.height());
+                       if ($legendItem.height() > plugin.settings.eventDescHeight) {
+                           $legendItem.addClass('extendable');
+                       }
                     }
                 }
 
             });
 
-            if (legendWidth <= cols.xs) {
-                $colsWrapper.addClass('cols-1');
-            } else if (legendWidth > cols.xs && legendWidth <= cols.sm) {
-                $colsWrapper.addClass('cols-2');
-            } else if (legendWidth > cols.sm && legendWidth <= cols.md) {
-                $colsWrapper.addClass('cols-3');
-            } else if (legendWidth > cols.md) {
-                $colsWrapper.addClass('cols-4');
-            }
-
             $legend.find('.legend-item.in-view').wrapAll($colsWrapper);
         },
 
+       /**
+        * Highlight $item in .legend
+        * @param $item
+        */
         highlightLegendItem: function($item) {
             var $legend = this._$legend;
             if ($item.hasClass('group-by')) {
@@ -530,6 +554,10 @@
             }
         },
 
+       /**
+        * Remove highlight for $item in .legend
+        * @param $item
+        */
         unhighlightLegendItem: function($item) {
             var $legend = this._$legend;
             if ($item.hasClass('group-by')) {
@@ -545,12 +573,16 @@
             }
         },
 
+       /**
+        * Bind handlers to plugin events
+        */
         bind: function() {
             var plugin = this,
                 $pluginContainer = this._$pluginContainer,
                 $timeLine = this._$timeLine,
                 $controls = this._$controls,
-                $ruler = this._$ruler;
+               $ruler = this._$ruler,
+               $legend = this._$legend;
 
             $(window).on('resize', function(e) {
                 console.log(e);
@@ -608,6 +640,12 @@
                         {duration: 300, done: function() {
                                 $timeLine.trigger('scroll');
                             }});
+               });
+
+           $legend
+               .on('click', '.legend-item.in-view.extendable .description', function () {
+                   $(this).closest('.legend-item').toggleClass('in');
+                   console.log(this);
                 })
         }
     } );

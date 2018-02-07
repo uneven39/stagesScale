@@ -65,6 +65,21 @@ $event-icon-file-color-outer: #8a86f6;
   }
 }
 
+@mixin legend-size($cols-number) {
+  .legend-item {
+    width: 100% / $cols-number;
+  }
+
+  .cols {
+    .legend-item.in-view:nth-of-type(n) {
+      clear: none;
+    }
+    .legend-item.in-view:nth-of-type(#{$cols-number}n + 1) {
+      clear: left;
+    }
+  }
+}
+
 .hidden {
   display: none;
 }
@@ -188,26 +203,11 @@ $event-icon-file-color-outer: #8a86f6;
 
           &:nth-child(6) {
             height: 60%;
-
-            /*&:after {
-              content: '30';
-            }*/
           }
 
           &:last-child {
             border-right: none;
           }
-
-          /*&:after {
-            content:'';
-            display: block;
-            width: 10px;
-            height: 10px;
-            font-size: 10px;
-            bottom: -10px;
-            right: -5px;
-          }*/
-
         }
 
         &:after {
@@ -249,59 +249,38 @@ $event-icon-file-color-outer: #8a86f6;
     .cols {
       height: 100%;
       width: 100%;
+    }
 
-      &.cols-1 {
-        .legend-item {
-          width: 100%;
+    &.xs {
+      .legend-item {
+        width: 100%;
+      }
 
-          &.in-view:nth-of-type(n) {
-            clear: left;
-          }
+      .cols {
+        .legend-item.in-view:nth-of-type(n) {
+          clear: left;
         }
       }
-      &.cols-2 {
-        .legend-item {
-          width: 50%;
+    }
 
-          &.in-view:nth-of-type(n) {
-            clear: none;
-          }
-          &.in-view:nth-of-type(2n + 1) {
-            clear: left;
-          }
-        }
-      }
-      &.cols-3 {
-        .legend-item {
-          width: 33.333%;
+    &.sm {
+      @include legend-size(2);
+    }
 
-          &.in-view:nth-of-type(n) {
-            clear: none;
-          }
-          &.in-view:nth-of-type(3n + 1) {
-            clear: left;
-          }
-        }
-      }
-      &.cols-4 {
-        .legend-item {
-          width: 25%;
+    &.md {
+      @include legend-size(3);
+    }
 
-          &.in-view:nth-of-type(n) {
-            clear: none;
-          }
-          &.in-view:nth-of-type(4n + 1) {
-            clear: left;
-          }
-        }
-      }
+    &.lg {
+      @include legend-size(4);
     }
 
     &-item {
       display: inline-block;
       visibility: hidden;
       position: absolute;
-      padding: 5px 15px 20px 50px;
+      margin: 5px 0 20px;
+      padding: 0 15px 0 50px;
       box-sizing: border-box;
       bottom: 0;
       left: 0;
@@ -310,7 +289,34 @@ $event-icon-file-color-outer: #8a86f6;
         visibility: visible;
         position: relative;
         float: left;
-        width: 20%;
+        width: 33.33%;
+
+        &:after {
+          content: '';
+        }
+
+        &.extendable {
+          transition: 0.2s max-height;
+          overflow-y: hidden;
+          max-height: 200px;
+          margin-bottom: 40px;
+
+          &:after {
+            position: absolute;
+            right: 0;
+            bottom: -10px;
+            content: 'Развернуть';
+            float: right;
+            display: inline-block;
+            cursor: pointer;
+          }
+          &.in {
+            max-height: 600px;
+            &:after {
+              content: 'Свернуть';
+            }
+          }
+        }
       }
 
       &.highlight {
