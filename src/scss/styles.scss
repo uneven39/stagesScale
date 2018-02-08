@@ -70,7 +70,7 @@ $event-icon-file-color-outer: #8a86f6;
     width: 100% / $cols-number;
   }
 
-  .cols {
+  .selected, .cols {
     .legend-item.in-view:nth-of-type(n) {
       clear: none;
     }
@@ -78,10 +78,14 @@ $event-icon-file-color-outer: #8a86f6;
       clear: left;
     }
   }
+
+  .selected ~ .cols {
+    display: none;
+  }
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .time-line-plugin {
@@ -127,6 +131,19 @@ $event-icon-file-color-outer: #8a86f6;
       width: 100%;
       background-color: #aeaeae;
       z-index: 1;
+
+      &-item, .group-by{
+        cursor: pointer;
+
+        &.selected {
+          z-index: 30;
+
+          &:before,
+          &:hover:before {
+            box-shadow: 0 0 5px 3px #5b5b5b;
+          }
+        }
+      }
 
       &-item {
         @include event-marker-base($event-marker-color-base, $event-marker-color-outer);
@@ -296,24 +313,52 @@ $event-icon-file-color-outer: #8a86f6;
         }
 
         &.extendable {
-          transition: 0.2s max-height;
+          transition: .6s max-height;
           overflow-y: hidden;
           max-height: 200px;
           margin-bottom: 40px;
 
+          .description {
+            cursor: pointer;
+            transition: .2s color;
+          }
+
+          &:not(.in):hover {
+            .description {
+              color: #eaeaea;
+
+              &:before {
+                content: 'Развернуть';
+                color: black;
+                position: absolute;
+                display: block;
+                width: 100%;
+                text-align: center;
+                left: 0;
+                top: 90px;
+              }
+            }
+
+            /*&:after {
+              display: none;
+            }*/
+          }
+
           &:after {
             position: absolute;
             right: 0;
-            bottom: -10px;
-            content: 'Развернуть';
-            float: right;
-            display: inline-block;
-            cursor: pointer;
+            bottom: 0;
+            content: '';
+            display: block;
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to top, #fff 5px, transparent);
           }
           &.in {
-            max-height: 600px;
+            max-height: 1000px;
+
             &:after {
-              content: 'Свернуть';
+              display: none;
             }
           }
         }
@@ -371,15 +416,6 @@ $event-icon-file-color-outer: #8a86f6;
             }
           }
         }
-      }
-    }
-
-    > .col-3 {
-      width: 33.33%;
-      float: left;
-
-      .legend-item {
-
       }
     }
   }
