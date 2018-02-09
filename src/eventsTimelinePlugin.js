@@ -499,7 +499,7 @@
 
             });
 
-            $legend.find('.legend-item.in-view').wrapAll($colsWrapper);
+            $legend.find('.legend-item.in-view:not(.selected .legend-item.in-view)').wrapAll($colsWrapper);
         },
 
        /**
@@ -670,22 +670,32 @@
                })
                .on('click', '.group-by', function() {
                    if (!$(this).hasClass('selected')) {
+                       var sameDate;
 
                        $(this).addClass('selected');
                        $(this).children().each(function(){
-                           var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
-                               selector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]';
+                           if ($(this).data('date') !== sameDate) {
+                               var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
+                                   selector = '.cols .legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                                   $item = $legend.find(selector).clone();
 
-                           $(selector).clone().appendTo($selected);
+                               $item.appendTo($selected);
 
-                           if (!$legend.find('.selected').length) {
-                               $selected.prependTo($legend);
+                               if ($item.length > 1) {
+                                   sameDate = $(this).data('date');
+                               }
+
+                               if (!$legend.find('.selected').length) {
+                                   $selected.prependTo($legend);
+                               }
                            }
                        });
                    } else {
                        $(this).removeClass('selected')
                            .children().each(function(){
-                           $legend.find('.selected').find('.legend-item.in-view[data-date="' + $(this).data('date') + '"]').remove();
+                               $legend.find('.selected .legend-item.in-view[data-date="' + $(this).data('date') + '"]').each(function() {
+                                   $(this).remove();
+                               });
                            if ($legend.find('.selected').children().length === 0) {
                                $legend.find('.selected').remove();
                            }

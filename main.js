@@ -70,4 +70,4 @@ var dataArray = [
     ];
 
 $('.test2').eventsTimeLine(dataArray, {start: 'auto', finish: 'auto', legendHeight: 'auto'});
-// $('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200});
+$('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200});
