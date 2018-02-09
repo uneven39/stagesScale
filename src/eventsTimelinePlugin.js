@@ -175,13 +175,15 @@
         },
 
         sortEventNodes: function($container) {
-            var $sortedData = $container.find('[data-type][data-date]').sort(function (itemA, itemB) {
+            var $sortedData = $container.find('[data-date]').sort(function (itemA, itemB) {
                 var dateA = new Date($(itemA).data('date')).getTime(),
                     dateB = new Date($(itemB).data('date')).getTime();
                 return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0;
             });
 
             $container.html('').append($sortedData);
+
+            console.dir($sortedData);
 
             return $container;
         },
@@ -463,10 +465,11 @@
             }
 
             $events.children().each(function(index, el) {
-                var leftBorder = $(el).offset().left;
+                var leftBorder = $(el).offset().left,
+                    rightBorder = leftBorder + $(el).width();
 
                 // Checking if event item or group is in time-line viewport:
-                if ((leftBorder >= leftLimit) && (leftBorder < rightLimit)) {
+                if ((rightBorder > leftLimit) && (leftBorder < rightLimit)) {
                     // Check if group or single event
                     if ($(el).hasClass('group-by')) {
                         // group:
@@ -561,6 +564,28 @@
             return newScroll;
         },
 
+        /**
+         * Sort nodes by date in their data-date attr
+         * @param $list
+         * @returns {void|*}
+         */
+        sortNodesByDate: function($list) {
+            var $sorted = $list.sort(function (a, b) {
+                var dateA = new Date($(a).data('date')).getTime(),
+                    dateB = new Date($(b).data('date')).getTime();
+
+                if (dateA < dateB) {
+                    return -1;
+                }
+                if (dateA > dateB) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            return $sorted;
+        },
+
        /**
         * Bind handlers to plugin events
         */
@@ -603,6 +628,11 @@
                 })
                 .on('mouseleave', '.events-item, .group-by', function() {
                     plugin.unhighlightLegendItem($(this));
+                })
+                .on('click', function (e) {
+                    if (!$(e.target).hasClass('events-item') && !$(e.target).hasClass('group-by')) {
+                        plugin.resetSelectedEvents();
+                    }
                 });
 
             $controls
@@ -651,10 +681,14 @@
                .on('click', '.events-item', function() {
                    if (!$(this).hasClass('selected')) {
                        var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
-                           selector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]';
+                           selector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                           $item = $legend.find(selector).clone();
+                       $(this).addClass('selected');
 
                        $(this).addClass('selected');
-                       $(selector).clone().appendTo($selected);
+                       $item.appendTo($selected);
+
+                       $selected.html(plugin.sortNodesByDate($selected.children()));
 
                        if (!$legend.find('.selected').length) {
                            $selected.prependTo($legend);
@@ -679,15 +713,20 @@
                                    selector = '.cols .legend-item.in-view[data-date="' + $(this).data('date') + '"]',
                                    $item = $legend.find(selector).clone();
 
+                               console.dir($legend.find(selector));
+
                                $item.appendTo($selected);
 
                                if ($item.length > 1) {
                                    sameDate = $(this).data('date');
                                }
 
+                               $selected.html(plugin.sortNodesByDate($selected.children()));
+
                                if (!$legend.find('.selected').length) {
                                    $selected.prependTo($legend);
                                }
+
                            }
                        });
                    } else {

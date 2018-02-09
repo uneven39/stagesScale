@@ -150,7 +150,7 @@ $event-icon-file-color-outer: #8a86f6;
         z-index: 5;
 
         &:hover {
-          z-index: 20;
+          z-index: 50;
 
           &:before {
             box-shadow: 0 0 15px #8c8c8c;
@@ -185,7 +185,7 @@ $event-icon-file-color-outer: #8a86f6;
         }
 
         &:hover {
-          z-index: 20;
+          z-index: 50;
 
           &:before {
             box-shadow: 0 0 15px #8c8c8c;
@@ -262,6 +262,19 @@ $event-icon-file-color-outer: #8a86f6;
   .legend {
     overflow-y: auto;
     overflow-x: hidden;
+
+    .selected {
+      position: relative;
+      margin-top: 50px;
+
+      &:before {
+        content: 'Выбранные события:';
+        position: absolute;
+        left: 50px;
+        top: -40px;
+        font-weight: bold;
+      }
+    }
 
     .cols {
       height: 100%;

@@ -5,14 +5,26 @@
     <title>Schedule plugin</title>
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/src/eventsTimelinePlugin.js"></script>
-    <link href="/dist/styles.css" rel="stylesheet"></head>
-    <link href="/src/icons/icons.css" rel="stylesheet"></head>
+    <link href="/dist/styles.css" rel="stylesheet">
+    <link href="/src/icons/icons.css" rel="stylesheet">
 </head>
 <body>
 <h3>
+    Calling "$('.test2').eventsTimeLine(dataArray, {start: 'auto', finish: 'auto', legendHeight: 'auto'})":
+</h3>
+<div class="test2">
+</div>
+
+<h3>
+    Calling "$('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200})":
+</h3>
+<div class="test3">
+</div>
+
+<h3>
     Call "$('.test1').eventsTimeLine({legendHeight: 500})" by button:
 </h3>
-<!--<button type="button" onclick="$('.test1').eventsTimeLine({start: 0, finish: 24, legendHeight: 500}); $(this).attr('disabled', true);">Initiate plugin here</button>
+<button type="button" onclick="$('.test1').eventsTimeLine({start: 0, finish: 24, legendHeight: 500}); $(this).attr('disabled', true);">Initiate plugin here</button>
 <div class="test1">
 
     <div data-date="2018/01/01 13:55:00" data-type="тип события 5" data-icon="file" data-title="Заголовок 25">Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.Lorem ipsum dolor sit amet, consectetur adipiscing elit. In fringilla interdum neque, et efficitur neque ullamcorper non.</div>
@@ -99,17 +111,6 @@
     <div data-date="2018/01/01 23:07:00" data-type="тип события 1" data-icon="type1" data-title="Заголовок 81">html-текст к новому событию 81</div>
     <div data-date="2018/01/01 23:08:00" data-type="тип события 1" data-icon="type1" data-title="Заголовок 82">Maecenas volutpat ante eget tellus placerat dapibus. Duis pulvinar condimentum justo, eget efficitur tortor molestie sit amet. Maecenas eleifend interdum purus sit amet dapibus.</div>
     <div data-date="2018/01/01 23:59:00" data-type="тип события 1" data-icon="type1" data-title="Заголовок 83">html-текст события 83</div>
-</div>-->
-<h3>
-    Calling "$('.test2').eventsTimeLine(dataArray, {start: 'auto', finish: 'auto', legendHeight: 'auto'})":
-</h3>
-<div class="test2">
-</div>
-
-<h3>
-    Calling "$('.test3').eventsTimeLine(dataArray2, {start: 0, finish: 14, legendHeight: 200})":
-</h3>
-<div class="test3">
 </div>
 
 
