@@ -79,9 +79,9 @@ $event-icon-file-color-outer: #8a86f6;
     }
   }
 
-  .selected ~ .cols {
+  /*.selected ~ .cols {
     display: none;
-  }
+  }*/
 }
 
 .hidden {
@@ -273,6 +273,10 @@ $event-icon-file-color-outer: #8a86f6;
         left: 50px;
         top: -40px;
         font-weight: bold;
+      }
+
+      & ~ .cols {
+        display: none;
       }
     }
 

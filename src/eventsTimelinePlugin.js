@@ -247,7 +247,7 @@
                 }
             }
 
-            // Перепроверяем получившиеся группировки: если есть соседние лейлблы, налезающие на
+            // Перепроверяем получившиеся группировки: если есть соседние лейблы, налезающие на
             // текущий, то объединяем:
             $events.children(':not(.hidden)').each(function (index, item) {
                 var $item = $(item),
@@ -600,6 +600,7 @@
 
             $(window).on('resize', function() {
                 $timeLine.scrollLeft(plugin.rescroll(plugin._$timeLine.width()));
+                plugin.groupEvents();
                 plugin.refreshEventsLegend();
             });
 
