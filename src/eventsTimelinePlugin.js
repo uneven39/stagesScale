@@ -14,8 +14,8 @@
         },
         cols = {
             xs: 420, // max width for 1 column
-            sm: 640, // max width for 2 column
-            md: 960 // max width for 3 column & min width for 4 columns
+            sm: 960, // max width for 2 column
+            md: 1240 // max width for 3 column & min width for 4 columns
         },
         zoomLevels = [
             100,
@@ -166,16 +166,24 @@
             this.groupEvents();
             this.refreshEventsLegend();
 
+            // Save data for recalculate scroll on window resize:
+            this._scrollPos = this._$timeLine.scrollLeft();
+            this._timeLineWidth = this._$timeLine.width();
+
+            console.log(this);
+
         },
 
         sortEventNodes: function($container) {
-            var $sortedData = $container.find('[data-type][data-date]').sort(function (itemA, itemB) {
+            var $sortedData = $container.find('[data-date]').sort(function (itemA, itemB) {
                 var dateA = new Date($(itemA).data('date')).getTime(),
                     dateB = new Date($(itemB).data('date')).getTime();
                 return (dateA < dateB) ? -1 : (dateA > dateB) ? 1 : 0;
             });
 
             $container.html('').append($sortedData);
+
+            console.dir($sortedData);
 
             return $container;
         },
@@ -355,53 +363,13 @@
 
         },
 
-        /*redrawLegendCols: function() {
-            var totalHeight = 0,
-                listHeightLimit,
-                listHeight = 0,
-                start = 0,
-                end = 0,
-                cols = 0,
-                $legend = this._$pluginContainer.find('.legend'),
-                $eventsInView,
-                $cols,
-                colsHeight = [];
-
-            // Убираем группировку по колонкам
-            $legend.find('.col-3').each(function (index, col) {
-                $(col).children().unwrap('.col-3');
-            });
-
-            $eventsInView = $legend.children('.in-view');
-            $eventsInView.each(function (index, event) {
-                totalHeight += $(event).height();
-            });
-
-            listHeightLimit = totalHeight / 3;
-
-            for (var i = 0; i < $eventsInView.length; i ++) {
-                var itemHeight = $($eventsInView[i]).height();
-                listHeight += itemHeight;
-                if (listHeight >= listHeightLimit) {
-                    end = (listHeight === listHeightLimit) ? (i + 1) : i;
-                    $eventsInView.slice(start, end).wrapAll('<div class="col-3"></div>');
-                    start = end;
-                    listHeight = 0;
-                    cols += 1;
-                }
-                if (cols === 2) break;
-            }
-            if (cols < 3)
-                $eventsInView.slice(start, $eventsInView.length).wrapAll('<div class="col-3"></div>');
-
-        },*/
-
         zoom: function(zoomType) {
             var $timeLine = this._$timeLine,
                 plugin = this,
                 newZoomLevel,
                 curZoomLevel = this._zoomLevel,
-                curScroll;
+                curScroll,
+                newScroll;
 
             switch (zoomType) {
                 case '+':
@@ -418,8 +386,11 @@
             this._zoomLevel = newZoomLevel;
 
             curScroll = $timeLine.scrollLeft();
+            newScroll = Math.ceil((curScroll + $timeLine.width() / 2)*( zoomLevels[newZoomLevel] * newZoomLevel)/( zoomLevels[curZoomLevel] * curZoomLevel) - $timeLine.width()/2);
 
-            $timeLine.animate({scrollLeft: Math.ceil((curScroll + $timeLine.width() / 2)*( zoomLevels[newZoomLevel] * newZoomLevel)/( zoomLevels[curZoomLevel] * curZoomLevel) - $timeLine.width()/2)}, 300);
+            console.log(curScroll, newScroll, $timeLine.width(), plugin._$events.width());
+
+            $timeLine.animate({scrollLeft: newScroll}, 300);
             $timeLine.find('.ruler').animate({width: zoomLevels[newZoomLevel] * newZoomLevel + '%'}, 300);
             $timeLine.find('.events')
                 .animate({width: zoomLevels[newZoomLevel] * newZoomLevel + '%'},
@@ -427,6 +398,8 @@
                         done: function(){
                             // перегруппируем события после анимации
                             plugin.groupEvents(newZoomLevel);
+                            plugin._scrollPos = $timeLine.scrollLeft();
+                            plugin._timeLineWidth = $timeLine.width();
                             $timeLine.trigger('zoom');
                         }
                     });
@@ -471,7 +444,7 @@
             if ($cols.length) {
                 $cols.children()
                     .each(function(index, item) {
-                        $(item).removeClass('in-view');
+                        $(item).removeClass('in-view hidden extendable');
                     })
                     .unwrap('.cols');
             }
@@ -492,41 +465,50 @@
             }
 
             $events.children().each(function(index, el) {
-                var leftBorder = $(el).offset().left;
+                var leftBorder = $(el).offset().left,
+                    rightBorder = leftBorder + $(el).width();
 
                 // Checking if event item or group is in time-line viewport:
-                if ((leftBorder >= leftLimit) && (leftBorder <= rightLimit)) {
+                if ((rightBorder > leftLimit) && (leftBorder < rightLimit)) {
                     // Check if group or single event
                     if ($(el).hasClass('group-by')) {
                         // group:
                         $(el).children().each(function(index, item) {
                             var $item = $(item),
                                 eventDate = $item.data('date'),
-                                $legendItem = $legend.find('.legend-item[data-date="' + eventDate + '"]');
+                                $legendItem = $legend.children('.legend-item[data-date="' + eventDate + '"]');
 
-                            $legendItem.addClass('in-view');
-                            if ($legendItem.height() > plugin.settings.eventDescHeight) {
-                                $legendItem.addClass('extendable');
-                            }
+                            $legendItem.each(function(){
+                                $(this).addClass('in-view');
+                                if ($(this).height() > plugin.settings.eventDescHeight) {
+                                    $(this).addClass('extendable');
+                                }
+                            })
                         });
                     } else if ($(el).hasClass('events-item')) {
                         // single:
                         var $item = $(el),
-                            eventDate = $item.data('date');
+                           eventDate = $item.data('date'),
+                           $legendItem = $legend.children('.legend-item[data-date="' + eventDate + '"]');
 
-                        $legend.find('[data-date="' + eventDate + '"]').addClass('in-view');
+                        $legendItem.each(function(){
+                            $(this).addClass('in-view');
+                            if ($(this).height() > plugin.settings.eventDescHeight) {
+                                $(this).addClass('extendable');
+                            }
+                        })
                     }
                 }
 
             });
 
-            $legend.find('.legend-item.in-view').wrapAll($colsWrapper);
+            $legend.find('.legend-item.in-view:not(.selected .legend-item.in-view)').wrapAll($colsWrapper);
         },
 
-        /**
-         * Highlight $item in .legend
-         * @param $item
-         */
+       /**
+        * Highlight $item in .legend
+        * @param $item
+        */
         highlightLegendItem: function($item) {
             var $legend = this._$legend;
             if ($item.hasClass('group-by')) {
@@ -542,10 +524,10 @@
             }
         },
 
-        /**
-         * Remove highlight for $item in .legend
-         * @param $item
-         */
+       /**
+        * Remove highlight for $item in .legend
+        * @param $item
+        */
         unhighlightLegendItem: function($item) {
             var $legend = this._$legend;
             if ($item.hasClass('group-by')) {
@@ -561,29 +543,83 @@
             }
         },
 
+        resetSelectedEvents: function() {
+            this._$events.find('.selected').each(function() {
+                $(this).removeClass('selected');
+            });
+            this._$legend.find('.selected').remove();
+        },
+
         /**
-         * Bind handlers to plugin events
+         * Get new scroll value for .time-line (used on window resize to keep scroll position)
+         * @param newWidth
+         * @returns {number}
          */
+        rescroll: function(newWidth) {
+            var curScroll = this._scrollPos,
+                curWidth = this._timeLineWidth,
+                ratio = curScroll / curWidth,
+                newScroll = ratio * newWidth;
+
+            return newScroll;
+        },
+
+        /**
+         * Sort nodes by date in their data-date attr
+         * @param $list
+         * @returns {void|*}
+         */
+        sortNodesByDate: function($list) {
+            var $sorted = $list.sort(function (a, b) {
+                var dateA = new Date($(a).data('date')).getTime(),
+                    dateB = new Date($(b).data('date')).getTime();
+
+                if (dateA < dateB) {
+                    return -1;
+                }
+                if (dateA > dateB) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            return $sorted;
+        },
+
+       /**
+        * Bind handlers to plugin events
+        */
         bind: function() {
             var plugin = this,
                 $pluginContainer = this._$pluginContainer,
+                $events = plugin._$events,
                 $timeLine = this._$timeLine,
                 $controls = this._$controls,
-                $ruler = this._$ruler,
-                $legend = this._$legend;
+               $ruler = this._$ruler,
+               $legend = this._$legend;
 
-            $(window).on('resize', function(e) {
-                console.log(e);
+            $(window).on('resize', function() {
+                $timeLine.scrollLeft(plugin.rescroll(plugin._$timeLine.width()));
                 plugin.refreshEventsLegend();
             });
 
             $timeLine
-                .on('scroll zoom', function() {
+                .on('zoom', function() {
+                    if (!$timeLine.is(':animated')) {
+                        clearTimeout($.data(this, 'zoomTimer'));
+                        $.data(this, 'zoomTimer', setTimeout(function() {
+                            plugin.resetSelectedEvents();
+                            plugin.refreshEventsLegend();
+                        }, 100));
+                    }
+                })
+                .on('scroll', function () {
                     if (!$timeLine.is(':animated')) {
                         clearTimeout($.data(this, 'scrollTimer'));
                         $.data(this, 'scrollTimer', setTimeout(function() {
                             plugin.refreshEventsLegend();
-                            // plugin.redrawLegendCols();
+                            plugin._scrollPos = $timeLine.scrollLeft();
+                            plugin._timeLineWidth = $timeLine.width();
                         }, 100));
                     }
                 })
@@ -592,6 +628,11 @@
                 })
                 .on('mouseleave', '.events-item, .group-by', function() {
                     plugin.unhighlightLegendItem($(this));
+                })
+                .on('click', function (e) {
+                    if (!$(e.target).hasClass('events-item') && !$(e.target).hasClass('group-by')) {
+                        plugin.resetSelectedEvents();
+                    }
                 });
 
             $controls
@@ -628,12 +669,78 @@
                         {duration: 300, done: function() {
                                 $timeLine.trigger('scroll');
                             }});
+               });
+
+           $legend
+               .on('click', '.legend-item.in-view.extendable .description', function () {
+                   $(this).closest('.legend-item').toggleClass('in');
+                   console.log(this);
                 });
 
-            $legend
-                .on('click', '.legend-item.in-view.extendable:after', function () {
-                    console.log(this);
-                })
+           $events
+               .on('click', '.events-item', function() {
+                   if (!$(this).hasClass('selected')) {
+                       var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
+                           selector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                           $item = $legend.find(selector).clone();
+                       $(this).addClass('selected');
+
+                       $(this).addClass('selected');
+                       $item.appendTo($selected);
+
+                       $selected.html(plugin.sortNodesByDate($selected.children()));
+
+                       if (!$legend.find('.selected').length) {
+                           $selected.prependTo($legend);
+                       }
+                   } else {
+                       $(this).removeClass('selected');
+                       $legend.find('.selected').find('.legend-item.in-view[data-date="' + $(this).data('date') + '"]').remove();
+                       if ($legend.find('.selected').children().length === 0) {
+                           $legend.find('.selected').remove();
+                       }
+                   }
+
+               })
+               .on('click', '.group-by', function() {
+                   if (!$(this).hasClass('selected')) {
+                       var sameDate;
+
+                       $(this).addClass('selected');
+                       $(this).children().each(function(){
+                           if ($(this).data('date') !== sameDate) {
+                               var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
+                                   selector = '.cols .legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                                   $item = $legend.find(selector).clone();
+
+                               console.dir($legend.find(selector));
+
+                               $item.appendTo($selected);
+
+                               if ($item.length > 1) {
+                                   sameDate = $(this).data('date');
+                               }
+
+                               $selected.html(plugin.sortNodesByDate($selected.children()));
+
+                               if (!$legend.find('.selected').length) {
+                                   $selected.prependTo($legend);
+                               }
+
+                           }
+                       });
+                   } else {
+                       $(this).removeClass('selected')
+                           .children().each(function(){
+                               $legend.find('.selected .legend-item.in-view[data-date="' + $(this).data('date') + '"]').each(function() {
+                                   $(this).remove();
+                               });
+                           if ($legend.find('.selected').children().length === 0) {
+                               $legend.find('.selected').remove();
+                           }
+                       });
+                   }
+               })
         }
     } );
 

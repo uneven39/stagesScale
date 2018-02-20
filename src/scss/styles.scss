@@ -65,32 +65,12 @@ $event-icon-file-color-outer: #8a86f6;
   }
 }
 
-/*
-
-&.sm {
-  .legend-item {
-    width: 50%;
-  }
-
-  .cols {
-    .legend-item.in-view:nth-of-type(n) {
-      clear: none;
-    }
-    .legend-item.in-view:nth-of-type(2n + 1) {
-      clear: left;
-    }
-  }
-}
-
-*/
-
-
 @mixin legend-size($cols-number) {
   .legend-item {
     width: 100% / $cols-number;
   }
 
-  .cols {
+  .selected, .cols {
     .legend-item.in-view:nth-of-type(n) {
       clear: none;
     }
@@ -98,10 +78,14 @@ $event-icon-file-color-outer: #8a86f6;
       clear: left;
     }
   }
+
+  .selected ~ .cols {
+    display: none;
+  }
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .time-line-plugin {
@@ -148,12 +132,25 @@ $event-icon-file-color-outer: #8a86f6;
       background-color: #aeaeae;
       z-index: 1;
 
+      &-item, .group-by{
+        cursor: pointer;
+
+        &.selected {
+          z-index: 30;
+
+          &:before,
+          &:hover:before {
+            box-shadow: 0 0 5px 3px #5b5b5b;
+          }
+        }
+      }
+
       &-item {
         @include event-marker-base($event-marker-color-base, $event-marker-color-outer);
         z-index: 5;
 
         &:hover {
-          z-index: 20;
+          z-index: 50;
 
           &:before {
             box-shadow: 0 0 15px #8c8c8c;
@@ -188,7 +185,7 @@ $event-icon-file-color-outer: #8a86f6;
         }
 
         &:hover {
-          z-index: 20;
+          z-index: 50;
 
           &:before {
             box-shadow: 0 0 15px #8c8c8c;
@@ -266,6 +263,19 @@ $event-icon-file-color-outer: #8a86f6;
     overflow-y: auto;
     overflow-x: hidden;
 
+    .selected {
+      position: relative;
+      margin-top: 50px;
+
+      &:before {
+        content: 'Выбранные события:';
+        position: absolute;
+        left: 50px;
+        top: -40px;
+        font-weight: bold;
+      }
+    }
+
     .cols {
       height: 100%;
       width: 100%;
@@ -299,7 +309,8 @@ $event-icon-file-color-outer: #8a86f6;
       display: inline-block;
       visibility: hidden;
       position: absolute;
-      padding: 5px 15px 20px 50px;
+      margin: 5px 0 20px;
+      padding: 0 15px 0 50px;
       box-sizing: border-box;
       bottom: 0;
       left: 0;
@@ -309,25 +320,59 @@ $event-icon-file-color-outer: #8a86f6;
         position: relative;
         float: left;
         width: 33.33%;
-        margin-bottom: 20px;
-        overflow-y: hidden;
-        max-height: 200px;
 
         &:after {
           content: '';
         }
 
         &.extendable {
-          &:after {
-            content: 'Развернуть';
-            float: right;
-            margin-top: 10px;
-            display: inline-block;
+          transition: .6s max-height;
+          overflow-y: hidden;
+          max-height: 200px;
+          margin-bottom: 40px;
+
+          .description {
             cursor: pointer;
+            transition: .2s color;
+          }
+
+          &:not(.in):hover {
+            .description {
+              color: #eaeaea;
+
+              &:before {
+                content: 'Развернуть';
+                color: black;
+                position: absolute;
+                display: block;
+                width: 100%;
+                text-align: center;
+                left: 0;
+                top: 90px;
+              }
+            }
+
+            /*&:after {
+              display: none;
+            }*/
+          }
+
+          &:after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            content: '';
+            display: block;
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to top, #fff 5px, transparent);
           }
           &.in {
-            max-height: 600px;
-            content: 'Свернуть';
+            max-height: 1000px;
+
+            &:after {
+              display: none;
+            }
           }
         }
       }
@@ -384,15 +429,6 @@ $event-icon-file-color-outer: #8a86f6;
             }
           }
         }
-      }
-    }
-
-    > .col-3 {
-      width: 33.33%;
-      float: left;
-
-      .legend-item {
-
       }
     }
   }
