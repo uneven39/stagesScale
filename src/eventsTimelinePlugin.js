@@ -171,7 +171,6 @@
             this._timeLineWidth = this._$timeLine.width();
 
             console.log(this);
-
         },
 
         sortEventNodes: function($container) {
@@ -230,7 +229,7 @@
                 $activeItems,
                 eventWidth;
 
-            this.ungroupEvents();
+            plugin.ungroupEvents();
 
             eventWidth = $events.find('.events-item:not(.hidden)').width() || 40;
 
@@ -255,6 +254,10 @@
                     isOverlap = $next.offset() ?
                         $next.offset().left < ($item.offset().left + eventWidth * 0.666) :
                         false;
+                if (isOverlap) {
+                    $events.trigger('eventsOverlapping');
+                }
+
                 if (isOverlap && $item.hasClass('group-by')) {
                     if ($next.hasClass('group-by')) {
                         $next.children().appendTo($item);
@@ -276,19 +279,24 @@
             });
 
             function groupNearest($collection) {
+                // Инициализируем первый/последний индексы событий создаваемой группы
                 var startGroupIdx = 0,
                     endGroupIdx = 0;
 
-                // Группируем события в каждом часе
+                // Просматриваем события в выборке $collection
                 for (var i = 1; i < $collection.length; i++) {
                     var $item = $($collection[i]),
                         $prevItem = $($collection[i - 1]),
                         isOverlap = $item.offset().left < ($prevItem.offset().left + eventWidth * 0.666);
 
+                    // Событие перекрывает предыдущее
                     if (isOverlap) {
                         endGroupIdx = i;
+                        $events.trigger('eventsOverlapping');
                     }
 
+                    // Событие не перекрывает предыдущее либо оно последнее в выборке:
+                    // определяем крайнее событие в создаваемой группе событий
                     if (!isOverlap || (i === ($collection.length - 1))) {
                         if ((endGroupIdx - startGroupIdx) > 0) {
                             var $wrapper = $('<div class="group-by"></div>'),
@@ -306,6 +314,7 @@
                                 .css('left', offset + '%');
 
                             $group.wrapAll($wrapper);
+                            $events.trigger('eventsOverlapping');
                         }
                         startGroupIdx = i;
                     }
@@ -363,6 +372,19 @@
 
         },
 
+        /**
+         * Mark selected events on window resizing
+         */
+        markSelected: function() {
+            var plugin = this,
+                $selected = plugin._$legend.find('.selected');
+
+        },
+
+        /**
+         * Zooming +/-
+         * @param zoomType
+         */
         zoom: function(zoomType) {
             var $timeLine = this._$timeLine,
                 plugin = this,
@@ -600,8 +622,10 @@
 
             $(window).on('resize', function() {
                 $timeLine.scrollLeft(plugin.rescroll(plugin._$timeLine.width()));
-                plugin.groupEvents();
-                plugin.refreshEventsLegend();
+                setTimeout(function () {
+                    plugin.groupEvents();
+                    plugin.refreshEventsLegend();
+                }, 250);
             });
 
             $timeLine
@@ -675,7 +699,6 @@
            $legend
                .on('click', '.legend-item.in-view.extendable .description', function () {
                    $(this).closest('.legend-item').toggleClass('in');
-                   console.log(this);
                 });
 
            $events

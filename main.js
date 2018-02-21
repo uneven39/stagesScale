@@ -2,7 +2,7 @@ var dataArray = [
     {date: "2018/02/02 13:59:00", type: "тип события 5", icon: "type5", title: "Заголовок 19", text: "Длинный html-текст события 19"},
     {date: "2018/02/02 04:11:00", type: "тип события 1", icon: "type1", title: "Заголовок 1", text: "html-текст события 1"},
     {date: "2018/02/02 04:23:00", type: "тип события 1", icon: "type1", title: "Заголовок 2", text: "html-текст события 2"},
-    {date: "2018/02/02 05:33:00", type: "тип события 1", icon: "type1", title: "Заголовок 3", text: "html-текст события 3 qwer qwer qwer qrewertg wergt wegdfg sdfg sdfg  <br/> rew qer qerqwer qwer qwer qwerqwer qwer <p>werqwerq er etryerty erty <br/> rtq34t 234t 234t 234e thy 6ui tuyi werqwerqwer</p>"},
+    {date: "2018/02/02 05:33:00", type: "тип события 1", icon: "type1", title: "Заголовок 3", text: "html-текст события 3 qwer qwer qwer <a href='#'>sdfsdf</a> qrewertg wergt wegdfg sdfg sdfg  <br/> rew qer qerqwer <a href='#'>sdfsdf</a> qwer qwer qwerqwer qwer <p>werqwerq er etryerty erty <br/> rtq34t 234t 234t 234e thy 6ui tuyi werqwerqwer</p>"},
     {date: "2018/02/02 07:11:00", type: "тип события 2", icon: "type2", title: "Заголовок 4", text: "html-текст события 4"},
     {date: "2018/02/02 08:16:00", type: "тип события 3", icon: "type3", title: "Заголовок 5", text: "html-текст события 5"},
     {date: "2018/02/02 08:57:00", type: "тип события 4", icon: "type4", title: "Заголовок 6", text: "html-текст события 6"},
