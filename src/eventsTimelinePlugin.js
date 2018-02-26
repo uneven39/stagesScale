@@ -221,19 +221,17 @@
             this._$timeLine.append($ruler);
         },
 
+        /**
+         * Группируем события в один бабл в таймлайне
+         */
         groupEvents: function(){
             var plugin = this,
-                settings = this.settings,
+                settings = plugin.settings,
                 $ruler = plugin._$ruler,
                 $events = plugin._$events,
-                $activeItems,
-                eventWidth;
-
-            plugin.ungroupEvents();
-
-            eventWidth = $events.find('.events-item:not(.hidden)').width() || 40;
-
-            $activeItems = $events.children(':not(.hidden)');
+                $legend = plugin._$legend,
+                $activeItems = $events.children(':not(.hidden)'),
+                eventWidth = $events.find('.events-item:not(.hidden)').width() || 40;
 
             for (var hour = settings.start; hour < settings.finish; hour++) {
                 var $hourGroup = $activeItems.filter(function (index, event) {
@@ -246,20 +244,17 @@
                 }
             }
 
-            // Перепроверяем получившиеся группировки: если есть соседние лейблы, налезающие на
-            // текущий, то объединяем:
+            // Перепроверяем получившиеся группировки: если есть соседние лейблы,
+            // налезающие на текущий, то объединяем:
             $events.children(':not(.hidden)').each(function (index, item) {
                 var $item = $(item),
                     $next = $item.next(),
                     isOverlap = $next.offset() ?
                         $next.offset().left < ($item.offset().left + eventWidth * 0.666) :
                         false;
-                if (isOverlap) {
-                    $events.trigger('eventsOverlapping');
-                }
 
-                if (isOverlap && $item.hasClass('group-by')) {
-                    if ($next.hasClass('group-by')) {
+                if (isOverlap && $item.hasClass('group')) {
+                    if ($next.hasClass('group')) {
                         $next.children().appendTo($item);
                         $next.remove();
                         $item.attr('data-count', $item.children().length);
@@ -267,8 +262,8 @@
                         $next.appendTo($item);
                         $item.attr('data-count', $item.children().length);
                     }
-                } else if (isOverlap && !$item.hasClass('group-by')) {
-                    if ($next.hasClass('group-by')) {
+                } else if (isOverlap && !$item.hasClass('group')) {
+                    if ($next.hasClass('group')) {
                         $item.prependTo($next);
                         $next.attr('data-count', $next.children().length);
                     } else {
@@ -299,7 +294,7 @@
                     // определяем крайнее событие в создаваемой группе событий
                     if (!isOverlap || (i === ($collection.length - 1))) {
                         if ((endGroupIdx - startGroupIdx) > 0) {
-                            var $wrapper = $('<div class="group-by"></div>'),
+                            var $wrapper = $('<div class="group"></div>'),
                                 $group = $collection.slice(startGroupIdx, endGroupIdx + 1),
                                 offset,
                                 leftOffsetFirst = $($group[0]).css('left'),
@@ -314,7 +309,6 @@
                                 .css('left', offset + '%');
 
                             $group.wrapAll($wrapper);
-                            $events.trigger('eventsOverlapping');
                         }
                         startGroupIdx = i;
                     }
@@ -323,9 +317,64 @@
         },
 
         ungroupEvents: function() {
-            this._$events.find('.group-by').each(function(index, group) {
-                $(group).children().unwrap('.group-by');
+            this._$events.find('.group').each(function(index, group) {
+                $(group).children().unwrap('.group');
             })
+        },
+
+        refreshSelected: function () {
+            var plugin = this,
+                $events = plugin._$events,
+                $legend = plugin._$legend;
+
+            // Обновляем выбранные события в легенде
+            $events.children('.group').each(function() {
+                var $group = $(this);
+
+                if ($group.children().length === $group.children('.selected').length) {
+                    var sameDate;
+
+                    $group
+                        .addClass('selected')
+                        .children().each(function(){
+                        $(this).addClass('selected');
+                        if ($(this).data('date') !== sameDate) {
+                            var $selected = $legend.find('.selected').length ?
+                                $legend.find('.selected') :
+                                $('<div class="selected"></div>'),
+                                dateSelector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                                $item = $legend.find('.cols ' + dateSelector).clone();
+
+                            if ($legend.find('.selected ' + dateSelector).length === 0) {
+                                $item.appendTo($selected);
+
+                                if ($item.length > 1) {
+                                    sameDate = $(this).data('date');
+                                }
+
+                                $selected.html(plugin.sortNodesByDate($selected.children()));
+
+                                if (!$legend.find('.selected').length) {
+                                    $selected.prependTo($legend);
+                                }
+                            }
+
+                        }
+                    });
+
+                } else {
+                    $group
+                        .removeClass('selected')
+                        .children().each(function(){
+                        $legend.find('.selected .legend-item.in-view[data-date="' + $(this).data('date') + '"]').each(function() {
+                            $(this).remove();
+                        });
+                        if ($legend.find('.selected').children().length === 0) {
+                            $legend.find('.selected').remove();
+                        }
+                    });
+                }
+            });
         },
 
         redraw: function () {
@@ -373,16 +422,7 @@
         },
 
         /**
-         * Mark selected events on window resizing
-         */
-        markSelected: function() {
-            var plugin = this,
-                $selected = plugin._$legend.find('.selected');
-
-        },
-
-        /**
-         * Zooming +/-
+         * Зум +/-
          * @param zoomType
          */
         zoom: function(zoomType) {
@@ -419,6 +459,7 @@
                     {duration: 300,
                         done: function(){
                             // перегруппируем события после анимации
+                            plugin.ungroupEvents();
                             plugin.groupEvents(newZoomLevel);
                             plugin._scrollPos = $timeLine.scrollLeft();
                             plugin._timeLineWidth = $timeLine.width();
@@ -428,7 +469,7 @@
         },
 
         /**
-         * Fill .legend by events descriptions
+         * Заполняем .legend описаниями событий
          */
         initLegend: function () {
             var $legend = this._$pluginContainer.find('.legend'),
@@ -450,7 +491,7 @@
         },
 
         /**
-         * Update visible events descriptions in .legend
+         * Обновляем описания видимых событий в .legend
          */
         refreshEventsLegend: function () {
             var plugin = this,
@@ -471,7 +512,7 @@
                     .unwrap('.cols');
             }
 
-            // Set columns widths depending on .legend width
+            // Устанавливаем колонки в зависимости от ширины .legend
             if (legendWidth <= cols.xs) {
                 $legend.removeClass('lg md sm')
                     .addClass('xs');
@@ -490,11 +531,11 @@
                 var leftBorder = $(el).offset().left,
                     rightBorder = leftBorder + $(el).width();
 
-                // Checking if event item or group is in time-line viewport:
+                // Проверяем, что событие/группа во "вьюпорте":
                 if ((rightBorder > leftLimit) && (leftBorder < rightLimit)) {
-                    // Check if group or single event
-                    if ($(el).hasClass('group-by')) {
-                        // group:
+                    // Проверяем, событие или группа
+                    if ($(el).hasClass('group')) {
+                        // группа:
                         $(el).children().each(function(index, item) {
                             var $item = $(item),
                                 eventDate = $item.data('date'),
@@ -508,7 +549,7 @@
                             })
                         });
                     } else if ($(el).hasClass('events-item')) {
-                        // single:
+                        // одиночное событие:
                         var $item = $(el),
                            eventDate = $item.data('date'),
                            $legendItem = $legend.children('.legend-item[data-date="' + eventDate + '"]');
@@ -528,12 +569,12 @@
         },
 
        /**
-        * Highlight $item in .legend
+        * Подсвечиваем $item в .legend
         * @param $item
         */
         highlightLegendItem: function($item) {
             var $legend = this._$legend;
-            if ($item.hasClass('group-by')) {
+            if ($item.hasClass('group')) {
                 $item.children().each(function (index, item) {
                     var legendSelector = '.legend-item[data-date="' + $(item).data('date') + '"]',
                         $legendItem = $legend.find(legendSelector);
@@ -547,12 +588,12 @@
         },
 
        /**
-        * Remove highlight for $item in .legend
+        * Убираем подсветку $item в .legend
         * @param $item
         */
         unhighlightLegendItem: function($item) {
             var $legend = this._$legend;
-            if ($item.hasClass('group-by')) {
+            if ($item.hasClass('group')) {
                 $item.children().each(function (index, item) {
                     var legendSelector = '.legend-item[data-date="' + $(item).data('date') + '"]',
                         $legendItem = $legend.find(legendSelector);
@@ -568,12 +609,19 @@
         resetSelectedEvents: function() {
             this._$events.find('.selected').each(function() {
                 $(this).removeClass('selected');
+
+                if ($(this).hasClass('group')) {
+                    $(this).children('.selected').each(function () {
+                        $(this).removeClass('selected');
+                    })
+                }
             });
             this._$legend.find('.selected').remove();
         },
 
         /**
-         * Get new scroll value for .time-line (used on window resize to keep scroll position)
+         * Получаем новое значение прокрутки для таймлайна при изменении размеров окна
+         * (для сохранения позиции прокрутки)
          * @param newWidth
          * @returns {number}
          */
@@ -587,7 +635,7 @@
         },
 
         /**
-         * Sort nodes by date in their data-date attr
+         * Сортируем ноды по их data-date аттрибуту
          * @param $list
          * @returns {void|*}
          */
@@ -609,7 +657,7 @@
         },
 
        /**
-        * Bind handlers to plugin events
+        * Привязываем обработчики к событиям
         */
         bind: function() {
             var plugin = this,
@@ -617,15 +665,27 @@
                 $events = plugin._$events,
                 $timeLine = this._$timeLine,
                 $controls = this._$controls,
-               $ruler = this._$ruler,
-               $legend = this._$legend;
+                $ruler = this._$ruler,
+                $legend = this._$legend,
+                resizeTimer,
+                winWidth = $(window).width();
 
             $(window).on('resize', function() {
-                $timeLine.scrollLeft(plugin.rescroll(plugin._$timeLine.width()));
-                setTimeout(function () {
+
+                if (resizeTimer) clearTimeout(resizeTimer);
+
+                resizeTimer = setTimeout(function() {
+                    $timeLine.scrollLeft(plugin.rescroll(plugin._$timeLine.width()));
+                    if (winWidth < $(window).width()) {
+                        plugin.ungroupEvents();
+                    }
                     plugin.groupEvents();
+                    plugin.refreshSelected();
                     plugin.refreshEventsLegend();
-                }, 250);
+                    winWidth = $(window).width();
+
+                }, 300);
+
             });
 
             $timeLine
@@ -648,14 +708,14 @@
                         }, 100));
                     }
                 })
-                .on('mouseenter', '.events-item, .group-by', function() {
+                .on('mouseenter', '.events-item, .group', function() {
                     plugin.highlightLegendItem($(this));
                 })
-                .on('mouseleave', '.events-item, .group-by', function() {
+                .on('mouseleave', '.events-item, .group', function() {
                     plugin.unhighlightLegendItem($(this));
                 })
                 .on('click', function (e) {
-                    if (!$(e.target).hasClass('events-item') && !$(e.target).hasClass('group-by')) {
+                    if (!$(e.target).hasClass('events-item') && !$(e.target).hasClass('group')) {
                         plugin.resetSelectedEvents();
                     }
                 });
@@ -704,12 +764,13 @@
            $events
                .on('click', '.events-item', function() {
                    if (!$(this).hasClass('selected')) {
-                       var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
+                       var $selected = $legend.find('.selected').length ?
+                                       $legend.find('.selected') :
+                                       $('<div class="selected"></div>'),
                            selector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]',
                            $item = $legend.find(selector).clone();
                        $(this).addClass('selected');
 
-                       $(this).addClass('selected');
                        $item.appendTo($selected);
 
                        $selected.html(plugin.sortNodesByDate($selected.children()));
@@ -726,36 +787,37 @@
                    }
 
                })
-               .on('click', '.group-by', function() {
+               .on('click', '.group', function() {
                    if (!$(this).hasClass('selected')) {
                        var sameDate;
 
-                       $(this).addClass('selected');
-                       $(this).children().each(function(){
-                           if ($(this).data('date') !== sameDate) {
-                               var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
-                                   selector = '.cols .legend-item.in-view[data-date="' + $(this).data('date') + '"]',
-                                   $item = $legend.find(selector).clone();
+                       $(this)
+                           .addClass('selected')
+                           .children().each(function(){
+                               $(this).addClass('selected');
+                               if ($(this).data('date') !== sameDate) {
+                                   var $selected =  $legend.find('.selected').length ? $legend.find('.selected') : $('<div class="selected"></div>'),
+                                       selector = '.cols .legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                                       $item = $legend.find(selector).clone();
 
-                               console.dir($legend.find(selector));
+                                   $item.appendTo($selected);
 
-                               $item.appendTo($selected);
+                                   if ($item.length > 1) {
+                                       sameDate = $(this).data('date');
+                                   }
 
-                               if ($item.length > 1) {
-                                   sameDate = $(this).data('date');
+                                   $selected.html(plugin.sortNodesByDate($selected.children()));
+
+                                   if (!$legend.find('.selected').length) {
+                                       $selected.prependTo($legend);
+                                   }
+
                                }
-
-                               $selected.html(plugin.sortNodesByDate($selected.children()));
-
-                               if (!$legend.find('.selected').length) {
-                                   $selected.prependTo($legend);
-                               }
-
-                           }
-                       });
+                           });
                    } else {
                        $(this).removeClass('selected')
                            .children().each(function(){
+                               $(this).removeClass('selected');
                                $legend.find('.selected .legend-item.in-view[data-date="' + $(this).data('date') + '"]').each(function() {
                                    $(this).remove();
                                });

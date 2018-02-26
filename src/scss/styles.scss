@@ -132,7 +132,7 @@ $event-icon-file-color-outer: #8a86f6;
       background-color: #aeaeae;
       z-index: 1;
 
-      &-item, .group-by{
+      &-item, .group{
         cursor: pointer;
 
         &.selected {
@@ -168,7 +168,7 @@ $event-icon-file-color-outer: #8a86f6;
         }
       }
 
-      .group-by {
+      .group {
         @include event-marker-base($event-marker-group-color-base, $event-marker-group-color-outer);
         z-index: 10;
 
