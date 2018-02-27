@@ -3,7 +3,7 @@
 
     "use strict";
 
-    var pluginName = "eventsTimeLine",
+    var pluginName = 'eventsTimeLine',
         seed = 0,
         defaults = {
             'start': 0,
@@ -82,11 +82,10 @@
             seed += 1;
 
             if (this.args[1] && this.args[2]) {
-                // data & options:
+                // данные и опции:
                 if ( Array.isArray(this.args[1]) && (this.args[2] === Object(this.args[2])) ) {
-                    // correct types
                     this.settings = $.extend( {}, this.settings, this.args[2] );
-                    // sort data array by date
+                    // сортируем данные по дате в аттрибуте
                     eventsList = this.args[1].sort(function(itemA, itemB) {
                         var dateA = new Date(itemA.date),
                             dateB = new Date(itemB.date);
@@ -104,14 +103,13 @@
                     this._$pluginContainer.html(eventsHtml);
 
                 } else {
-                    // invalid types
                     return;
                 }
             } else if ((this.args[1] === Object(this.args[1])) && !Array.isArray(this.args[1])) {
-                // options only
+                // только опции
                 this.settings = $.extend( {}, this.settings, this.args[1] );
             } else if (Array.isArray(this.args[1])) {
-                // data array only
+                // только массив данных
                 eventsList = this.args[1].sort(function(itemA,itemB) {
                     var dateA = new Date(itemA.date),
                         dateB = new Date(itemB.date);
@@ -327,7 +325,7 @@
                 $events = plugin._$events,
                 $legend = plugin._$legend;
 
-            // Обновляем выбранные события в легенде
+            // Обновляем выбранные группы событий в легенде
             $events.children('.group').each(function() {
                 var $group = $(this);
 
@@ -375,6 +373,28 @@
                     });
                 }
             });
+
+            $events.children('.events-item.selected').each(function() {
+                var $selected = $legend.find('.selected').length ?
+                    $legend.find('.selected') :
+                    $('<div class="selected"></div>'),
+                    dateSelector = '.legend-item.in-view[data-date="' + $(this).data('date') + '"]',
+                    $item = $legend.find('.cols ' + dateSelector).clone();
+
+                if ($legend.find('.selected ' + dateSelector).length === 0) {
+                    $item.appendTo($selected);
+
+                    if ($item.length > 1) {
+                        sameDate = $(this).data('date');
+                    }
+
+                    $selected.html(plugin.sortNodesByDate($selected.children()));
+
+                    if (!$legend.find('.selected').length) {
+                        $selected.prependTo($legend);
+                    }
+                }
+            })
         },
 
         redraw: function () {
@@ -757,7 +777,7 @@
                });
 
            $legend
-               .on('click', '.legend-item.in-view.extendable .description', function () {
+               .on('click', '.legend-item.in-view.extendable .header', function () {
                    $(this).closest('.legend-item').toggleClass('in');
                 });
 

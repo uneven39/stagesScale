@@ -3,6 +3,9 @@ $time-line-ruler-height: 20px;
 
 $ruler-24h-min-width: 992px;
 
+$blue-base: #2271b0;
+$orange-base: #fea94d;
+
 $event-marker-color-base: #fea94d;
 $event-marker-color-outer: adjust-hue($event-marker-color-base, 13%);
 
@@ -38,6 +41,7 @@ $event-icon-file-color-outer: #8a86f6;
   bottom: 0;
   margin-left: -20px;
   @include event-marker-label-base($color-base, $color-outer);
+
   &:before {
     content: '';
     width: 38px;
@@ -79,13 +83,6 @@ $event-icon-file-color-outer: #8a86f6;
     }
   }
 
-  /*.selected ~ .cols {
-    display: none;
-  }*/
-}
-
-.hidden {
-  display: none !important;
 }
 
 .time-line-plugin {
@@ -97,7 +94,7 @@ $event-icon-file-color-outer: #8a86f6;
   font-family: sans-serif, serif;
 
   .hidden {
-    display: none;
+    display: none !important;
   }
 
   .controls {
@@ -325,6 +322,45 @@ $event-icon-file-color-outer: #8a86f6;
         float: left;
         width: 33.33%;
 
+        .header {
+          position: relative;
+
+          &:before {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background-color: gray;
+            border-radius: 15px;
+            top: 0;
+            left: -40px;
+          }
+
+          h4 {
+            margin: 5px 0 10px;
+          }
+
+          &.icon{
+            &-file {
+              &:before {
+                background-image: url("../icons/file.png");
+                background-position: center;
+                background-size: 20px auto;
+                background-repeat: no-repeat;
+              }
+            }
+
+            &-folder {
+              &:before {
+                background-image: url("../icons/folder.png");
+                background-position: center;
+                background-size: 20px auto;
+                background-repeat: no-repeat;
+              }
+            }
+          }
+        }
+
         &:after {
           content: '';
         }
@@ -335,30 +371,51 @@ $event-icon-file-color-outer: #8a86f6;
           max-height: 200px;
           margin-bottom: 40px;
 
-          .description {
+          .header {
             cursor: pointer;
-            transition: .2s color;
-          }
+            transition: .3s color;
 
-          &:not(.in):hover {
-            .description {
-              color: #eaeaea;
-
-              &:before {
-                content: 'Развернуть';
-                color: black;
-                position: absolute;
-                display: block;
-                width: 100%;
-                text-align: center;
-                left: 0;
-                top: 90px;
-              }
+            &:after {
+              display: block;
+              width: 15px;
+              height: 13px;
+              content: ' ';
+              background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 13'%3E%3Cpath fill='#000000' d='M 7.4999998,13 -1.485359e-7,0.00961991 14.999999,0.00961951 Z'/%3E%3C/svg%3E");
+              background-position: 0 0;
+              color: black;
+              position: absolute;
+              text-align: center;
+              right: 0;
+              top: 50%;
+              margin-top: -6px;
+              transition: .3s all;
             }
 
-            /*&:after {
+            &:hover {
+              color: $orange-base;
+
+              &:after {
+                background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 13'%3E%3Cpath fill='#{$orange-base}' d='M 7.4999998,13 -1.485359e-7,0.00961991 14.999999,0.00961951 Z'/%3E%3C/svg%3E");
+              }
+            }
+          }
+
+          &.in {
+            max-height: initial;
+
+            &:after {
               display: none;
-            }*/
+            }
+
+            .header {
+              &:after {
+                -webkit-transform: rotate(180deg);
+                -moz-transform: rotate(180deg);
+                -ms-transform: rotate(180deg);
+                -o-transform: rotate(180deg);
+                transform: rotate(180deg);
+              }
+            }
           }
 
           &:after {
@@ -370,13 +427,6 @@ $event-icon-file-color-outer: #8a86f6;
             width: 100%;
             height: 30px;
             background: linear-gradient(to top, #fff 5px, transparent);
-          }
-          &.in {
-            max-height: 1000px;
-
-            &:after {
-              display: none;
-            }
           }
         }
       }
@@ -394,44 +444,6 @@ $event-icon-file-color-outer: #8a86f6;
           bottom: 10px;
           background-color: #fecf4d;
           left: 0;
-        }
-      }
-
-      .header {
-
-        &:before {
-          content: '';
-          position: absolute;
-          width: 28px;
-          height: 28px;
-          background-color: gray;
-          border-radius: 15px;
-          top: 0;
-          left: 12px;
-        }
-
-        h4 {
-          margin: 5px 0 10px;
-        }
-
-        &.icon{
-          &-file {
-            &:before {
-              background-image: url("../icons/file.png");
-              background-position: center;
-              background-size: 20px auto;
-              background-repeat: no-repeat;
-            }
-          }
-
-          &-folder {
-            &:before {
-              background-image: url("../icons/folder.png");
-              background-position: center;
-              background-size: 20px auto;
-              background-repeat: no-repeat;
-            }
-          }
         }
       }
     }
