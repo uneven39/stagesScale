@@ -159,6 +159,7 @@
 
             this.redraw();
             this.drawRuler();
+            this.minimizeRulerLabels();
             this.initLegend();
 
             this.bind();
