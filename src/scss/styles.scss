@@ -197,6 +197,14 @@ $event-icon-file-color-outer: #8a86f6;
       width: 100%;
       height: $time-line-ruler-height;
 
+      &.compact {
+        .unit-hh {
+          &:before, &:after {
+            display: none !important;
+          }
+        }
+      }
+
       .unit-hh {
         position: relative;
         top: 0;
@@ -251,6 +259,7 @@ $event-icon-file-color-outer: #8a86f6;
             top: 100%;
           }
         }
+
       }
     }
 

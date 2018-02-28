@@ -10,7 +10,8 @@
             'finish': 24,
             'legendHeight': 'auto',
             'zoomLevel' : 1,
-            'eventDescHeight': 200
+            'eventDescHeight': 200,
+            'timeLabelWidth': 40
         },
         cols = {
             xs: 420, // max width for 1 column
@@ -164,7 +165,7 @@
             this.groupEvents();
             this.refreshEventsLegend();
 
-            // Save data for recalculate scroll on window resize:
+            // Сохраняем данные для пересчет скроллинга при ресайзе окна:
             this._scrollPos = this._$timeLine.scrollLeft();
             this._timeLineWidth = this._$timeLine.width();
 
@@ -217,6 +218,24 @@
                 $ruler.append($rulerUnit);
             }
             this._$timeLine.append($ruler);
+        },
+
+        /**
+         * Скрываем лейблы часовых отметок, если ширина слишком маленькая:
+         */
+        minimizeRulerLabels: function () {
+            var plugin = this,
+                labelWidth = plugin.settings.timeLabelWidth,
+                totalLabelsWidth = (plugin.settings.finish - plugin.settings.start + 1) * labelWidth,
+                rulerWidth = plugin._$ruler.width();
+
+            console.log(totalLabelsWidth, rulerWidth);
+
+            if (totalLabelsWidth > rulerWidth) {
+                plugin._$ruler.addClass('compact');
+            } else {
+                plugin._$ruler.removeClass('compact');
+            }
         },
 
         /**
@@ -696,9 +715,11 @@
 
                 resizeTimer = setTimeout(function() {
                     $timeLine.scrollLeft(plugin.rescroll(plugin._$timeLine.width()));
-                    if (winWidth < $(window).width()) {
-                        plugin.ungroupEvents();
-                    }
+                    // if (winWidth < $(window).width()) {
+                    //     plugin.ungroupEvents();
+                    // }
+                    plugin.minimizeRulerLabels();
+                    plugin.ungroupEvents();
                     plugin.groupEvents();
                     plugin.refreshSelected();
                     plugin.refreshEventsLegend();
