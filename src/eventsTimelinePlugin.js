@@ -232,10 +232,14 @@
 
             console.log(totalLabelsWidth, rulerWidth);
 
-            if (totalLabelsWidth > rulerWidth) {
-                plugin._$ruler.addClass('compact');
-            } else {
-                plugin._$ruler.removeClass('compact');
+            if (totalLabelsWidth > rulerWidth && totalLabelsWidth < rulerWidth * 2) {
+                plugin._$ruler.addClass('compact-even');
+                plugin._$ruler.removeClass('compact-all');
+            } else if (totalLabelsWidth > rulerWidth * 2) {
+                plugin._$ruler.addClass('compact-all');
+                plugin._$ruler.removeClass('compact-even');
+            } else if (totalLabelsWidth < rulerWidth) {
+                plugin._$ruler.removeClass('compact-all compact-even');
             }
         },
 
