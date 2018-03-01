@@ -214,6 +214,18 @@ $event-icon-file-color-outer: #8a86f6;
               display: none !important;
             }
           }
+
+          .unit-hh:first-of-type {
+            &:before {
+              display: block !important;
+            }
+          }
+
+          .unit-hh:last-of-type {
+            &:after {
+              display: block !important;
+            }
+          }
         }
 
       }
