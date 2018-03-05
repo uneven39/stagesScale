@@ -494,7 +494,7 @@
             curScroll = $timeLine.scrollLeft();
             newScroll = Math.ceil((curScroll + $timeLine.width() / 2)*( zoomLevels[newZoomLevel] * newZoomLevel)/( zoomLevels[curZoomLevel] * curZoomLevel) - $timeLine.width()/2);
 
-            console.log(curScroll, newScroll, $timeLine.width(), plugin._$events.width());
+            if (zoomType === '+') plugin.minimizeRulerLabels();;
 
             $timeLine.animate({scrollLeft: newScroll}, 300);
             $timeLine.find('.ruler').animate({width: zoomLevels[newZoomLevel] * newZoomLevel + '%'}, 300);
@@ -503,6 +503,7 @@
                     {duration: 300,
                         done: function(){
                             // перегруппируем события после анимации
+                            if (zoomType === '-') plugin.minimizeRulerLabels();
                             plugin.ungroupEvents();
                             plugin.groupEvents(newZoomLevel);
                             plugin._scrollPos = $timeLine.scrollLeft();

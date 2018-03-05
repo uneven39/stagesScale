@@ -200,9 +200,23 @@ $event-icon-file-color-outer: #8a86f6;
       &.compact {
 
         &-even {
-          .unit-hh:nth-of-type(2n + 1) {
-            &:after {
-              display: none !important;
+          .unit-hh {
+            &:nth-of-type(2n + 1) {
+              &:after {
+                display: none !important;
+              }
+            }
+
+            i {
+              & {
+                border-color: transparent;
+              }
+
+              &:nth-of-type(3),
+              &:nth-of-type(6),
+              &:nth-of-type(9) {
+                border-color: #000;
+              }
             }
           }
         }
@@ -213,19 +227,31 @@ $event-icon-file-color-outer: #8a86f6;
             &:before {
               display: none !important;
             }
+
+            &:first-of-type {
+              &:before {
+                display: block !important;
+              }
+            }
+
+            &:last-of-type {
+              &:after {
+                display: block !important;
+              }
+            }
+
+            i {
+              & {
+                border-color: transparent;
+              }
+
+              &:nth-of-type(6) {
+                border-color: #000;
+              }
+            }
+
           }
 
-          .unit-hh:first-of-type {
-            &:before {
-              display: block !important;
-            }
-          }
-
-          .unit-hh:last-of-type {
-            &:after {
-              display: block !important;
-            }
-          }
         }
 
       }
