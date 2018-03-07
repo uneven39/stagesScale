@@ -3,10 +3,10 @@ const path = require('path'),
     ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
-	entry: './src/scss/styles.scss',
+  entry: './src/scss/styles.scss',
   output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: 'styles.css'
+      filename: 'eventsTimelinePlugin.css'
   },
   module: {
       rules: [
@@ -43,7 +43,7 @@ module.exports = {
       ]
   },
   plugins: [
-      new ExtractTextPlugin('styles.css', {
+      new ExtractTextPlugin('eventsTimelinePlugin.css', {
           allChunks: true
       }),
       new ConcatPlugin({
